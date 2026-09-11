@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+<!--
+  Ported from ros-industrial/motoman, motoman_gp7_support/urdf/gp7_macro.xacro
+  (kinetic-devel branch, BSD licensed). Link/joint geometry, origins, axes
+  and limits are unchanged from the original. Adapted for ROS 2:
+    1. the motoman_resources common_materials.xacro include was inlined,
+    2. mesh package:// references point at this package (gp7_description),
+    3. <inertial> blocks added to every real link, not present in the
+       source (which only needed visual/collision for ROS 1 MoveIt use).
+       Mass/COM/inertia derived from actual mesh volume via numpy-stl,
+       scaled uniformly so total mass = Yaskawa's published 34 kg product
+       mass (per-link mass isn't published; solid-aluminum density would
+       overestimate total mass by ~75%, since these are hollow castings).
+-->
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="motoman_gp7" params="prefix">
+
+    <material name="yaskawa_blue">
+      <color rgba="${33/255} ${38/255} ${191/255} 1.0"/>
+    </material>
+
+    <!-- link list -->
+    <link name="${prefix}world"/>
+    <joint name="${prefix}world-base_link" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <parent link="${prefix}world"/>
+      <child link="${prefix}base_link"/>
+    </joint>
+    <link name="${prefix}base_link">
+        <inertial>
+          <origin xyz="-0.0058 -0.0000 0.0938" rpy="0 0 0"/>
+          <mass value="8.884"/>
+          <inertia ixx="0.046245" iyy="0.051011" izz="0.044280" ixy="-0.000008" ixz="-0.000405" iyz="-0.000018"/>
+        </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="package://gp7_description/meshes/visual/gp7_base_link.stl"/>
+        </geometry>
+        <material name="yaskawa_blue"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://gp7_description/meshes/collision/gp7_base_link.stl"/>
+        </geometry>
+      </collision>
+    </link>
+    <link name="${prefix}link_1_s">
+        <inertial>
+          <origin xyz="0.0151 -0.0000 -0.0438" rpy="0 0 0"/>
+          <mass value="5.286"/>
+          <inertia ixx="0.022276" iyy="0.024651" izz="0.017613" ixy="-0.000007" ixz="-0.003809" iyz="-0.000016"/>
+        </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="package://gp7_description/meshes/visual/gp7_link_1_s.stl"/>
+        </geometry>
+        <material name="yaskawa_blue"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://gp7_description/meshes/collision/gp7_link_1_s.stl"/>
+        </geometry>
+      </collision>
+    </link>
+    <link name="${prefix}link_2_l">
+        <inertial>
+          <origin xyz="-0.0274 0.0002 0.1955" rpy="0 0 0"/>
+          <mass value="10.063"/>
+          <inertia ixx="0.234914" iyy="0.182606" izz="0.071978" ixy="-0.000054" ixz="-0.000473" iyz="-0.000720"/>
+        </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="package://gp7_description/meshes/visual/gp7_link_2_l.stl"/>
+        </geometry>
+        <material name="yaskawa_blue"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://gp7_description/meshes/collision/gp7_link_2_l.stl"/>
+        </geometry>
+      </collision>
+    </link>
+    <link name="${prefix}link_3_u">
+        <inertial>
+          <origin xyz="-0.0176 -0.0007 0.0194" rpy="0 0 0"/>
+          <mass value="4.502"/>
+          <inertia ixx="0.013413" iyy="0.016145" izz="0.015009" ixy="0.000112" ixz="-0.001033" iyz="-0.000059"/>
+        </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="package://gp7_description/meshes/visual/gp7_link_3_u.stl"/>
+        </geometry>
+        <material name="yaskawa_blue"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://gp7_description/meshes/collision/gp7_link_3_u.stl"/>
+        </geometry>
+      </collision>
+    </link>
+    <link name="${prefix}link_4_r">
+        <inertial>
+          <origin xyz="-0.1937 -0.0001 -0.0000" rpy="0 0 0"/>
+          <mass value="4.601"/>
+          <inertia ixx="0.007134" iyy="0.047270" izz="0.048187" ixy="0.000022" ixz="0.000008" iyz="-0.000001"/>
+        </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="package://gp7_description/meshes/visual/gp7_link_4_r.stl"/>
+        </geometry>
+        <material name="yaskawa_blue"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://gp7_description/meshes/collision/gp7_link_4_r.stl"/>
+        </geometry>
+      </collision>
+    </link>
+    <link name="${prefix}link_5_b">
+        <inertial>
+          <origin xyz="0.0176 0.0000 0.0002" rpy="0 0 0"/>
+          <mass value="0.626"/>
+          <inertia ixx="0.000407" iyy="0.000759" izz="0.000734" ixy="0.000000" ixz="-0.000002" iyz="0.000001"/>
+        </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="package://gp7_description/meshes/visual/gp7_link_5_b.stl"/>
+        </geometry>
+        <material name="yaskawa_blue"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://gp7_description/meshes/collision/gp7_link_5_b.stl"/>
+        </geometry>
+      </collision>
+    </link>
+    <link name="${prefix}link_6_t">
+        <inertial>
+          <origin xyz="0.0741 0.0000 0.0001" rpy="0 0 0"/>
+          <mass value="0.039"/>
+          <inertia ixx="0.000014" iyy="0.000007" izz="0.000008" ixy="-0.000000" ixz="-0.000000" iyz="0.000000"/>
+        </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="package://gp7_description/meshes/visual/gp7_link_6_t.stl"/>
+        </geometry>
+        <material name="yaskawa_blue"/>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://gp7_description/meshes/collision/gp7_link_6_t.stl"/>
+        </geometry>
+      </collision>
+    </link>
+    <!-- end of link list -->
+
+    <!-- joint list -->
+    <joint name="${prefix}joint_1_s" type="revolute">
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}link_1_s"/>
+      <origin xyz="0 0 0.330" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="${radians(-170)}" upper="${radians(170)}" effort="212.66" velocity="${radians(375)}"/>
+    </joint>
+    <joint name="${prefix}joint_2_l" type="revolute">
+      <parent link="${prefix}link_1_s"/>
+      <child link="${prefix}link_2_l"/>
+      <origin xyz="0.040 0 0" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="${radians(-65)}" upper="${radians(145)}" effort="205.80" velocity="${radians(315)}"/>
+    </joint>
+    <joint name="${prefix}joint_3_u" type="revolute">
+      <parent link="${prefix}link_2_l"/>
+      <child link="${prefix}link_3_u"/>
+      <origin xyz="0 0 0.445" rpy="0 0 0"/>
+      <axis xyz="0 -1 0"/>
+      <limit lower="${radians(-70)}" upper="${radians(190)}" effort="106.82" velocity="${radians(410)}"/>
+    </joint>
+    <joint name="${prefix}joint_4_r" type="revolute">
+      <parent link="${prefix}link_3_u"/>
+      <child link="${prefix}link_4_r"/>
+      <origin xyz="0.440 0 0.040" rpy="0 0 0"/>
+      <axis xyz="-1 0 0"/>
+      <limit lower="${radians(-190)}" upper="${radians(190)}" effort="55.86" velocity="${radians(550)}"/>
+    </joint>
+    <joint name="${prefix}joint_5_b" type="revolute">
+      <parent link="${prefix}link_4_r"/>
+      <child link="${prefix}link_5_b"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <axis xyz="0 -1 0"/>
+      <limit lower="${radians(-135)}" upper="${radians(135)}" effort="32.68" velocity="${radians(550)}"/>
+    </joint>
+    <joint name="${prefix}joint_6_t" type="revolute">
+      <parent link="${prefix}link_5_b"/>
+      <child link="${prefix}link_6_t"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <axis xyz="-1 0 0"/>
+      <limit lower="${radians(-360)}" upper="${radians(360)}" effort="22.54" velocity="${radians(1000)}"/>
+    </joint>
+    <!-- end of joint list -->
+
+    <!-- ROS-Industrial 'flange' frame: attachment point for EEF models -->
+    <link name="${prefix}flange"/>
+    <joint name="${prefix}joint_6_t-flange" type="fixed">
+      <origin xyz="0.080 0 0" rpy="0 0 0"/>
+      <parent link="${prefix}link_6_t"/>
+      <child link="${prefix}flange"/>
+    </joint>
+
+    <!-- ROS-Industrial 'tool0' frame: all-zeros tool frame -->
+    <link name="${prefix}tool0"/>
+    <joint name="${prefix}flange-tool0" type="fixed">
+      <origin xyz="0 0 0" rpy="${radians(180)} ${radians(-90)} 0"/>
+      <parent link="${prefix}flange"/>
+      <child link="${prefix}tool0"/>
+    </joint>
+
+    <!-- base_link to robot manufacturer world-coordinates transform -->
+    <link name="${prefix}base"/>
+    <joint name="${prefix}base_link-base" type="fixed">
+      <origin xyz="0 0 0.330" rpy="0 0 0"/>
+      <parent link="${prefix}base_link"/>
+      <child link="${prefix}base"/>
+    </joint>
+
+  </xacro:macro>
+</robot>

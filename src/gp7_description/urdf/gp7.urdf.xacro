@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<robot name="gp7" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find gp7_description)/urdf/gp7_macro.xacro"/>
+  <xacro:include filename="$(find gp7_description)/urdf/gripper.xacro"/>
+  <xacro:include filename="$(find gp7_description)/urdf/gp7.ros2_control.xacro"/>
+
+  <xacro:motoman_gp7 prefix=""/>
+  <xacro:simple_gripper prefix="" parent="flange"/>
+  <xacro:gp7_ros2_control prefix=""/>
+
+</robot>
