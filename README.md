@@ -49,6 +49,7 @@ Gazebo/ros2_control integration are original to this project.
 ### Coordinate frame assignment
 
 ![D-H frame diagram](report/images/dh-frames.jpg)
+![D-H frame diagram](report/images/datasheet_image.jpg)
 
 *(Frames assigned per standard D-H convention; frame 0 at the base center on
 the ground, z-axes along each joint's rotation axis. z1/z2 confirmed parallel
