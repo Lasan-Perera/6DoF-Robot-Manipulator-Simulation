@@ -7,8 +7,7 @@ Pick-and-place of Box B onto Box A with a Yaskawa Motoman GP7, fully in simulati
 ```
 6DoF-Robot-Manipulator-Simulation/
 ├── report/                 D-H table, FK/IK derivations, writeup
-│   └── images/
-│       └── dh-frames.jpg   <-- ADD YOUR FRAME-ASSIGNMENT DIAGRAM HERE
+│   └── images/ 
 ├── media/                  screen-recorded simulation video
 └── src/
     ├── gp7_description/    URDF/xacro, meshes, worlds, ros2_control + Gazebo bring-up
