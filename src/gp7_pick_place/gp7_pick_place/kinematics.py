@@ -1,5 +1,6 @@
 import numpy as np
 
+# DH parameters for the GP7 robot arm by yasakawa
 DH_PARAMS = [
     (0.040,   90, 0.330),
     (0.445,    0, 0.000),
@@ -9,7 +10,7 @@ DH_PARAMS = [
     (0.000,    0, 0.080),
 ]
 
-
+# Transformation matrix from Denavit-Hartenberg parameters
 def dh_transform(a: float, alpha_deg: float, d: float, theta_deg: float) -> np.ndarray:
     alpha = np.deg2rad(alpha_deg)
     theta = np.deg2rad(theta_deg)
@@ -22,7 +23,7 @@ def dh_transform(a: float, alpha_deg: float, d: float, theta_deg: float) -> np.n
         [0,         0,        0,      1],
     ])
 
-
+# we convert joint angles to match with TF in Gazebo
 def _apply_joint_conventions(joint_angles_rad: list[float]) -> list[float]:
     j = [np.rad2deg(a) for a in joint_angles_rad]
     return [
@@ -34,7 +35,7 @@ def _apply_joint_conventions(joint_angles_rad: list[float]) -> list[float]:
         j[5],
     ]
 
-
+# Forward kinematics
 def forward_kinematics(joint_angles_rad: list[float]) -> np.ndarray:
     theta_dh = _apply_joint_conventions(joint_angles_rad)
     T = np.eye(4)
@@ -42,7 +43,7 @@ def forward_kinematics(joint_angles_rad: list[float]) -> np.ndarray:
         T = T @ dh_transform(a, alpha, d, theta)
     return T
 
-
+# Location of the wrsit center
 def wrist_center(p06: np.ndarray, R06: np.ndarray, d6: float = 0.080) -> np.ndarray:
     z5_direction = R06[:, 2]
     return p06 - d6 * z5_direction
