@@ -6,12 +6,14 @@ Pick-and-place of Box B onto Box A with a Yaskawa Motoman GP7, fully in simulati
 
 ```
 6DoF-Robot-Manipulator-Simulation/
-├── report/                 D-H table, FK/IK derivations, writeup
-│   └── images/ 
-├── media/                  screen-recorded simulation video
+├── report/                       D-H table, FK/IK derivations, writeup
+│   └── images/
+│       ├── dh-frames.jpg         hand-drawn coordinate frame assignment
+│       └── datasheet_image.jpg   Yaskawa dimensional drawing, used to sanity-check link lengths
+├── media/                        screen-recorded simulation video
 └── src/
-    ├── gp7_description/    URDF/xacro, meshes, worlds, ros2_control + Gazebo bring-up
-    └── gp7_pick_place/     FK/IK, trajectory planning, velocity control, mission node
+    ├── gp7_description/          URDF/xacro, meshes, worlds, ros2_control + Gazebo bring-up
+    └── gp7_pick_place/           FK/IK, trajectory planning, velocity control, mission node
 ```
 
 ## Setup
@@ -48,11 +50,17 @@ Gazebo/ros2_control integration are original to this project.
 ### Coordinate frame assignment
 
 ![D-H frame diagram](report/images/dh-frames.jpg)
-![D-H frame diagram](report/images/datasheet_image.jpg)
 
 *(Frames assigned per standard D-H convention; frame 0 at the base center on
 the ground, z-axes along each joint's rotation axis. z1/z2 confirmed parallel
 — joints L and U rotate about the same line, opposite sign.)*
+
+![Yaskawa GP7 dimensional drawing](report/images/datasheet_image.jpg)
+
+*(Manufacturer dimensional drawing, used only as a rough sanity check — the
+arm is shown in a bent pose here, so its dimension lines mix multiple links'
+projections and don't map 1:1 to individual D-H parameters. Actual a/d values
+come from the CAD-derived joint offsets in gp7_macro.xacro, see below.)*
 
 ### D-H parameter table
 
@@ -66,13 +74,10 @@ the ground, z-axes along each joint's rotation axis. z1/z2 confirmed parallel
 | 6 | 0     | 0   | 0.080 | θ6* |
 
 All `a`/`d` values taken from the real joint offsets in
-`gp7_description/urdf/gp7_macro.xacro` (ROS-Industrial CAD data), not scaled
-off the manufacturer's dimensional drawing — that drawing shows the arm in a
-bent pose, so its dimension lines mix multiple links' projections and don't
-map 1:1 to individual D-H parameters. Cross-checked against an independent
-published D-H table for this exact robot (da Silva et al., *Determination of
-the Inverse Kinematic of the Industrial Robot Yaskawa-Motoman-Gp7*, Adv. Rob.
-& Mech. Engin. 2022) — all six rows agree.
+`gp7_description/urdf/gp7_macro.xacro` (ROS-Industrial CAD data). Cross-checked
+against an independent published D-H table for this exact robot (da Silva et
+al., *Determination of the Inverse Kinematic of the Industrial Robot
+Yaskawa-Motoman-Gp7*, Adv. Rob. & Mech. Engin. 2022) — all six rows agree.
 
 ### Joint variable conventions (important — not raw encoder angles)
 
@@ -110,12 +115,39 @@ FK implemented as the standard D-H transform per link
 *(zero-config target derived analytically from the raw xacro offset chain,
 not measured live)*
 
+### Inverse kinematics — method and verification
+
+Closed-form solution via position/orientation decoupling (standard method
+for a spherical-wrist 6-DOF arm), in `gp7_pick_place/kinematics.py`:
+
+1. **`wrist_center()`** — back-calculates the spherical-wrist center
+   (shared origin of frames 4/5) from a target pose, by stepping back along
+   the tool's approach direction (the 3rd column of R06) by `d6`.
+2. **`solve_position_joints()`** — θ1 from the wrist center's azimuth; θ2/θ3
+   from a law-of-cosines triangle (shoulder–elbow–wrist), correcting for the
+   `a1`/`a3` link offsets.
+3. **`solve_wrist_orientation()`** — with θ1–3 known, ³R6 = (⁰R3)ᵀ · R06
+   isolates the wrist's rotation; θ4/θ5/θ6 extracted from specific elements
+   of that matrix.
+
+**Verified by round-trip** (solve IK for a target pose, feed the result back
+through the already-TF-verified FK, confirm the same pose comes out):
+
+| True angles (deg) | Solved angles (deg) | Full-pose match |
+|---|---|---|
+| [11.459, -17.189, 22.918, 28.648, 17.189, -22.918] | [11.459, -17.189, 22.918, 28.648, 17.189, -22.918] | Yes (exact) |
+
+Live Gazebo/`tf2_echo` cross-check (commanding an IK-solved configuration
+and confirming the tool reaches the intended target, independent of the
+FK round-trip above) is queued as the next verification step before this
+gets used for the actual pick-and-place motion.
+
 ## Status
 
 - [x] GP7 model ported to ROS 2, gripper attached, verified in RViz
 - [x] Gazebo scene (Box A, Box B), ros2_control, both controllers verified with live commands
 - [x] D-H parameter table + coordinate frame diagram
 - [x] Forward kinematics — verified against live TF across 3 configurations
-- [ ] Inverse kinematics
+- [x] Inverse kinematics — position/orientation decoupling, verified by FK round-trip; live Gazebo cross-check pending
 - [ ] Trajectory planning + velocity profile
 - [ ] Pick-and-place demo video
