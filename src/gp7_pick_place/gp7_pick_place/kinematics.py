@@ -24,6 +24,9 @@ def dh_transform(a: float, alpha_deg: float, d: float, theta_deg: float) -> np.n
     ])
 
 # we convert joint angles to match with TF in Gazebo
+# DH z1, z3, z5 point opposite to the URDF axes of joints 2, 4, 6 (+y, -x, -x),
+# so those angles flip sign; joint 2 also has a 90 deg offset.
+# Checked against robot_state_publisher on random joint vectors (full transforms)
 def _apply_joint_conventions(joint_angles_rad: list[float]) -> list[float]:
     j = [np.rad2deg(a) for a in joint_angles_rad]
     return [
@@ -32,7 +35,7 @@ def _apply_joint_conventions(joint_angles_rad: list[float]) -> list[float]:
         j[2],
         -j[3],
         j[4],
-        j[5],
+        -j[5],
     ]
 
 # Forward kinematics
@@ -97,7 +100,7 @@ def solve_wrist_orientation(theta1, theta2, theta3, R06: np.ndarray) -> tuple[fl
 
     theta4 = -theta4_dh
     theta5 = theta5_dh
-    theta6 = theta6_dh
+    theta6 = -theta6_dh
 
     return theta4, theta5, theta6
 
