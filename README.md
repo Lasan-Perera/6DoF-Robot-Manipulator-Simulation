@@ -82,7 +82,7 @@ Yaskawa-Motoman-Gp7*, Adv. Rob. & Mech. Engin. 2022) — all six rows agree.
 ### Joint variable conventions (important — not raw encoder angles)
 
 The frame axes as drawn don't line up 1:1 with the physical joint zero
-positions or rotation directions, so two of the six joints need a conversion
+positions or rotation directions, so three of the six joints need a conversion
 between the physical joint angle and the θ actually fed into the D-H matrix:
 
 | Joint | D-H θ used in `dh_transform` | Physical joint angle |
@@ -92,12 +92,16 @@ between the physical joint angle and the θ actually fed into the D-H matrix:
 | 3 | θ3 | = θ3 |
 | 4 | −θ4 | (chosen z4 direction opposite to the real `joint_4_r` URDF axis) |
 | 5 | θ5 | = θ5 |
-| 6 | θ6 | = θ6 |
+| 6 | −θ6 | (z5 = +x at zero pose, opposite to the `joint_6_t` URDF axis −x) |
 
 Found by: matching computed FK against the true physical zero-pose position
 (0.560, 0, 0.815 m, from the raw xacro offset chain) revealed the θ2 offset;
 matching a live non-zero configuration against `tf2_echo` (which the offset
-alone didn't fix) isolated the θ4 sign flip.
+alone didn't fix) isolated the θ4 sign flip. The θ6 sign flip only shows in
+orientation (joint 6 rotates about an axis through the flange origin, so
+position checks cannot see it); it was found by comparing full transforms
+against `robot_state_publisher` on random joint vectors (after the fix: max
+residual 5.2e-13 mm and 6.7e-14° over 20 random configurations).
 
 ### Forward kinematics — verification
 
