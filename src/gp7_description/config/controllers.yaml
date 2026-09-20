@@ -29,8 +29,7 @@ arm_controller:
 gripper_controller:
   ros__parameters:
     joints:
-      - finger_left_joint
-      - finger_right_joint
+      - robotiq_85_left_knuckle_joint
     command_interfaces:
       - position
     state_interfaces:

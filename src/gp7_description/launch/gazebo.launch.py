@@ -28,14 +28,17 @@ def generate_launch_description():
     # so model://gp7_description/meshes/... resolves correctly.
     gz_resource_path = SetEnvironmentVariable(
         name='GZ_SIM_RESOURCE_PATH',
-        value=os.path.dirname(get_package_share_directory('gp7_description')),
+        value=os.pathsep.join([
+            os.path.dirname(get_package_share_directory('gp7_description')),
+            os.path.dirname(get_package_share_directory('robotiq_description')),
+        ]),
     )
 
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py')
         ),
-        launch_arguments={'gz_args': f'-r {world_file}'}.items(),
+        launch_arguments={'gz_args': f'-r --physics-engine gz-physics-bullet-featherstone-plugin {world_file}'}.items(),
     )
 
     robot_state_publisher = Node(
