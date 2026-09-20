@@ -2,11 +2,35 @@
 <robot name="gp7" xmlns:xacro="http://ros.org/wiki/xacro">
 
   <xacro:include filename="$(find gp7_description)/urdf/gp7_macro.xacro"/>
-  <xacro:include filename="$(find gp7_description)/urdf/gripper.xacro"/>
   <xacro:include filename="$(find gp7_description)/urdf/gp7.ros2_control.xacro"/>
 
+  <!-- Primitive gripper kept in the tree as the fallback if the 2F-85's
+       mimic joints don't resolve under gz_ros2_control. -->
+  <!-- <xacro:include filename="$(find gp7_description)/urdf/gripper.xacro"/> -->
+
+  <xacro:include filename="$(find robotiq_description)/urdf/robotiq_2f_85_macro.urdf.xacro"/>
+
   <xacro:motoman_gp7 prefix=""/>
-  <xacro:simple_gripper prefix="" parent="flange"/>
+  <!-- <xacro:simple_gripper prefix="" parent="flange"/> -->
   <xacro:gp7_ros2_control prefix=""/>
+
+  <xacro:robotiq_gripper
+      name="robotiq_gripper_system"
+      prefix=""
+      parent="tool0"
+      sim_gazebo="true"
+      include_ros2_control="true">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_gripper>
+
+  <!-- Grasp point: midpoint of the two finger pads at contact.
+       z measured from tool0 at the closed state (knuckle 0.8), where the
+       pads actually meet. L_tcp = 0.112 m from flange along its x-axis. -->
+  <link name="tcp"/>
+  <joint name="tool0-tcp" type="fixed">
+    <parent link="tool0"/>
+    <child link="tcp"/>
+    <origin xyz="0 0 0.112" rpy="0 0 0"/>
+  </joint>
 
 </robot>
