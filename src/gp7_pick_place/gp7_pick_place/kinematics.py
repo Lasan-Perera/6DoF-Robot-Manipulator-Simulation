@@ -114,3 +114,25 @@ def inverse_kinematics(target_pose: np.ndarray) -> list[list[float]]:
     theta4, theta5, theta6 = solve_wrist_orientation(theta1, theta2, theta3, R06)
 
     return [[theta1, theta2, theta3, theta4, theta5, theta6]]
+
+L_TCP = 0.112
+D6 = 0.080
+
+R_FLANGE_TO_TOOL0 = np.array([
+    [0.0,  0.0, 1.0],
+    [0.0, -1.0, 0.0],
+    [1.0,  0.0, 0.0],
+])
+
+
+def inverse_kinematics_tcp(target_pose_tcp: np.ndarray) -> list[list[float]]:
+    p_tcp = target_pose_tcp[:3, 3]
+    R_tcp = target_pose_tcp[:3, :3]
+
+    R06 = R_tcp
+    wc = p_tcp - (L_TCP + D6) * R06[:, 2]
+
+    theta1, theta2, theta3 = solve_position_joints(wc)
+    theta4, theta5, theta6 = solve_wrist_orientation(theta1, theta2, theta3, R06)
+
+    return [[theta1, theta2, theta3, theta4, theta5, theta6]]
