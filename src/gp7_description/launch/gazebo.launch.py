@@ -1,6 +1,6 @@
 import os
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, RegisterEventHandler, SetEnvironmentVariable
+from launch.actions import ExecuteProcess, IncludeLaunchDescription, RegisterEventHandler, SetEnvironmentVariable
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, PathJoinSubstitution
@@ -94,6 +94,30 @@ def generate_launch_description():
         )
     )
 
+    # The 2F-85's mimic-constraint linkage doesn't spawn at the URDF's
+    # declared initial value once bullet-featherstone enforces the mimics --
+    # measured spawn state settles around 0.147 rad, not 0.7929. Force it
+    # open right after the gripper controller activates, so every launch
+    # (mission node, teleop, manual testing) starts from a known state
+    # instead of whatever the physics solver happened to settle into.
+    open_gripper = ExecuteProcess(
+        cmd=[
+            'ros2', 'topic', 'pub', '-1',
+            '/gripper_controller/joint_trajectory',
+            'trajectory_msgs/msg/JointTrajectory',
+            '{joint_names: [robotiq_85_left_knuckle_joint], '
+            'points: [{positions: [0.0], time_from_start: {sec: 1}}]}',
+        ],
+        output='screen',
+    )
+
+    delay_gripper_open = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=gripper_controller_spawner,
+            on_exit=[open_gripper],
+        )
+    )
+
     return LaunchDescription([
         gz_resource_path,
         gz_sim,
@@ -101,4 +125,5 @@ def generate_launch_description():
         clock_bridge,
         spawn_robot,
         delay_controllers,
+        delay_gripper_open,
     ])
