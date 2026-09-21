@@ -136,3 +136,24 @@ def inverse_kinematics_tcp(target_pose_tcp: np.ndarray) -> list[list[float]]:
     theta4, theta5, theta6 = solve_wrist_orientation(theta1, theta2, theta3, R06)
 
     return [[theta1, theta2, theta3, theta4, theta5, theta6]]
+
+
+def upright_orientation_tracking_yaw(theta1: float) -> np.ndarray:
+    # This is a rotation matrix that rotates the end effector around the z-axis of the base frame, so that it always points "up" (z-axis aligned with gravity) while allowing free rotation around the z-axis. The yaw angle is determined by theta1, which is the first joint angle of the robot arm.
+    c, s = np.cos(theta1), np.sin(theta1)
+    return np.array([
+        [ c, -s, 0.0],
+        [-s, -c, 0.0],
+        [0.0, 0.0, -1.0],
+    ])
+
+
+def inverse_kinematics_tcp_continuous(target_pose_tcp: np.ndarray,
+                                       previous_solution: list[float] | None = None,
+                                       period: float = 2 * np.pi) -> list[float]:   
+    # This function computes the inverse kinematics for the GP7 robot arm, given a target pose in the TCP (Tool Center Point) frame. It also allows for continuous tracking of joint angles by considering a previous solution and ensuring that the new solution is within a specified period (default is 2π radians). This helps to avoid sudden jumps in joint angles when the robot is moving continuously.
+    q = np.array(inverse_kinematics_tcp(target_pose_tcp)[0])
+    if previous_solution is not None:
+        prev = np.array(previous_solution)
+        q = prev + (q - prev + period / 2) % period - period / 2
+    return list(q)
