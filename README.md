@@ -2,6 +2,11 @@
 
 Pick-and-place of Box B onto Box A with a Yaskawa Motoman GP7, fully in simulation.
 
+## Demo
+
+https://github.com/Lasan-Perera/6DoF-Robot-Manipulator-Simulation/raw/main/media/pick_and_place_demo.mp4
+
+
 ## Structure
 
 ```
@@ -10,7 +15,8 @@ Pick-and-place of Box B onto Box A with a Yaskawa Motoman GP7, fully in simulati
 │   └── images/
 │       ├── dh-frames.jpg         hand-drawn coordinate frame assignment
 │       └── datasheet_image.jpg   Yaskawa dimensional drawing, used to sanity-check link lengths
-├── media/                        screen-recorded simulation video
+├── media/
+│   └── pick_and_place_demo.mp4   screen-recorded simulation video
 └── src/
     ├── gp7_description/          URDF/xacro, meshes, worlds, ros2_control + Gazebo bring-up
     └── gp7_pick_place/           FK/IK, trajectory planning, velocity control, mission node
@@ -34,6 +40,12 @@ Bring up the full Gazebo simulation (Box A, Box B, ros2_control):
 ros2 launch gp7_description gazebo.launch.py
 ```
 
+Run the full pick-and-place sequence (Gazebo must already be running):
+```bash
+cd src/gp7_pick_place/gp7_pick_place
+python3 run_pick_place.py
+```
+
 ## Acknowledgment
 
 `gp7_description`'s link geometry, joint origins/axes/limits, and meshes are
@@ -42,8 +54,28 @@ ported from the ROS-Industrial project's `motoman_gp7_support` package
 Per-link mass/inertia (not present in the source, which only needed
 visual/collision geometry for ROS 1 MoveIt use) was derived from real mesh
 volume, scaled so total mass matches Yaskawa's published 34 kg product mass.
-The ROS 1 → ROS 2 packaging, the simplified gripper end effector, and the
-Gazebo/ros2_control integration are original to this project.
+The gripper (`robotiq_description`, `2f_85`) is vendored from
+github.com/robotiq/ros (BSD-3-Clause), stripped to the description package
+only. The ROS 1 → ROS 2 packaging, the Gazebo/ros2_control integration, and
+the trajectory/mission code are original to this project.
+
+## Simulation setup
+
+**Box positions differ from the task sheet's (1, 1, 0).** Reachability check
+against the verified D-H parameters: max wrist-centre radius is
+`a1 + a2 + l_eff` = 40 + 445 + 441.8 = **926.8 mm**. Box A at (1, 1) is
+1414 mm from the base — outside the arm's reach regardless of gripper or IK
+branch. Relocated to **Box A (0.5, 0.5, 0)**, **Box B (0.55, −0.25, 0.025)**
+— both within the reachable envelope, with clearance between them for the
+descent path.
+
+**Gripper: Robotiq 2F-85**, not the task sheet's minimum "simplified gripper"
+requirement, chosen for a more realistic grasp. One real finding worth
+noting: Gazebo's default DART physics engine does not implement mimic-joint
+constraints (the 2F-85's 5 driven-follower joints), so the fingers moved
+asymmetrically under DART. Switched to the `bullet-featherstone` physics
+engine, which does support them — confirmed via the `Physics.cc` mimic
+warning disappearing and symmetric finger motion in testing.
 
 ## Kinematics
 
@@ -133,25 +165,70 @@ for a spherical-wrist 6-DOF arm), in `gp7_pick_place/kinematics.py`:
 3. **`solve_wrist_orientation()`** — with θ1–3 known, ³R6 = (⁰R3)ᵀ · R06
    isolates the wrist's rotation; θ4/θ5/θ6 extracted from specific elements
    of that matrix.
+4. **`inverse_kinematics_tcp()`** — target given at the gripper's grasp point
+   (`tcp`, not frame 6): subtracts `L_TCP + D6` along the approach axis before
+   the steps above. `inverse_kinematics_tcp_continuous()` additionally picks
+   the joint-angle branch nearest a given previous solution, unwrapping ±360°
+   ambiguities so consecutive waypoints in a trajectory don't spin the wrist
+   unnecessarily (see Trajectory planning below).
 
 **Verified by round-trip** (solve IK for a target pose, feed the result back
-through the already-TF-verified FK, confirm the same pose comes out):
+through the already-TF-verified FK, confirm the same pose comes out) and
+**by live Gazebo cross-check** (command the IK-solved joint angles, confirm
+`tcp` actually reaches the intended target via `tf2_echo`):
 
-| True angles (deg) | Solved angles (deg) | Full-pose match |
-|---|---|---|
-| [11.459, -17.189, 22.918, 28.648, 17.189, -22.918] | [11.459, -17.189, 22.918, 28.648, 17.189, -22.918] | Yes (exact) |
+| Target `tcp` pose | Solved joint angles used | Live TF `tcp` result | Match |
+|---|---|---|---|
+| (0.5, 0.3, 0.6), identity rotation | [0.5404, 0.3737, -0.2494, -0.0, 2.1939, 2.6012] | (0.500, 0.300, 0.600) | Yes (exact) |
 
-Live Gazebo/`tf2_echo` cross-check (commanding an IK-solved configuration
-and confirming the tool reaches the intended target, independent of the
-FK round-trip above) is queued as the next verification step before this
-gets used for the actual pick-and-place motion.
+### Trajectory planning and velocity profile
+
+**Waypoint sequence** (approach → grasp → lift → transit → place → retreat),
+orientation held fixed (yaw = 0, matching Box B's axis-aligned spawn — not
+world-fixed yaw-tracking, which was tried first but approached the box at a
+diagonal since the box itself doesn't rotate with the base). Each waypoint
+solved with `inverse_kinematics_tcp_continuous()`, chained off the previous
+waypoint's solution.
+
+**Velocity profile: LSPB** (Linear Segments with Parabolic Blends —
+trapezoidal velocity, parabolic-blend position), per EN3563 Lecture 13
+slides 5–11, implemented in `gp7_pick_place/trajectory.py`:
+- `segment_timing()` — trapezoidal (`tb = v_max/accel`) or triangular
+  (`tb = sqrt(|Δq|/accel)`) blend time, chosen by whether the move is long
+  enough to reach `v_max`.
+- `lspb_position()` — 3-phase position law (parabolic in / linear / parabolic
+  out) per joint.
+- `generate_segment_trajectory()` — all 6 joints in a segment share one
+  `(tb, tf)`, set by whichever joint needs the most time (the "pacing"
+  joint); other joints move slower within the same window using their own
+  effective velocity/acceleration.
+
+Verified against real waypoint data: joint position steps between samples
+ramp up then down smoothly (0.067° → 0.6° → 0.042° across one segment),
+confirming genuine trapezoidal velocity rather than linear interpolation.
+
+### Pick-and-place execution
+
+`gp7_pick_place/run_pick_place.py` solves all 6 waypoints, generates an LSPB
+trajectory per segment, and executes via the `FollowJointTrajectory` action
+(not just publishing to the topic) — the action's result callback is the
+authoritative "motion actually finished" signal from the controller, which
+matters because polling `/joint_states` velocities can read near-zero in the
+brief window before a new trajectory starts moving, causing the runner to
+issue the next command before the arm physically arrives.
+
+Gripper: closes to 0.75 rad (near the measured fully-closed 0.8, leaving
+margin) at the grasp waypoint, opens fully at release. `check_tcp_pose()`
+confirms actual `tcp` position via TF immediately before each gripper action
+for live debugging.
 
 ## Status
 
-- [x] GP7 model ported to ROS 2, gripper attached, verified in RViz
-- [x] Gazebo scene (Box A, Box B), ros2_control, both controllers verified with live commands
+- [x] GP7 model ported to ROS 2, Robotiq 2F-85 gripper attached, verified in RViz and Gazebo physics
+- [x] Gazebo scene (Box A, Box B, relocated for reachability), ros2_control, both controllers verified with live commands
 - [x] D-H parameter table + coordinate frame diagram
 - [x] Forward kinematics — verified against live TF across 3 configurations
-- [x] Inverse kinematics — position/orientation decoupling, verified by FK round-trip; live Gazebo cross-check pending
-- [ ] Trajectory planning + velocity profile
-- [ ] Pick-and-place demo video
+- [x] Inverse kinematics — position/orientation decoupling, verified by FK round-trip AND live Gazebo TF cross-check
+- [x] Trajectory planning + LSPB velocity profile — verified against real waypoint data
+- [x] Pick-and-place execution — action-based, gripper actuation, working end to end in Gazebo
+- [ ] Report writeup
