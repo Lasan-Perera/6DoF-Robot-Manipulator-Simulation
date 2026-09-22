@@ -10,6 +10,19 @@ DH_PARAMS = [
     (0.000,    0, 0.080),
 ]
 
+JOINT_LIMITS_DEG = [
+    (-170, 170),   # joint 1
+    (-65, 145),    # joint 2
+    (-70, 190),    # joint 3
+    (-190, 190),   # joint 4
+    (-135, 135),   # joint 5
+    (-360, 360),   # joint 6
+]
+
+def within_limits(joint_angles_rad, limits_deg=JOINT_LIMITS_DEG):
+    deg = np.rad2deg(joint_angles_rad)
+    return all(lo <= d <= hi for d, (lo, hi) in zip(deg, limits_deg))
+
 # Transformation matrix from Denavit-Hartenberg parameters
 def dh_transform(a: float, alpha_deg: float, d: float, theta_deg: float) -> np.ndarray:
     alpha = np.deg2rad(alpha_deg)
@@ -157,3 +170,30 @@ def inverse_kinematics_tcp_continuous(target_pose_tcp: np.ndarray,
         prev = np.array(previous_solution)
         q = prev + (q - prev + period / 2) % period - period / 2
     return list(q)
+
+def solve_position_joints_elbow_variants(wc):
+    """
+    Returns BOTH elbow solutions (elbow-up, elbow-down) for the same wrist
+    center -- the sign ambiguity in arccos(beta)/arccos(gamma).
+    """
+    xc, yc, zc = wc
+    theta1 = np.arctan2(yc, xc)
+
+    r = np.sqrt(xc**2 + yc**2)
+    r_planar = r - A1
+    s = zc - D1
+
+    L = np.hypot(r_planar, s)
+    l_eff = np.hypot(A3, D4)
+    phi = np.arctan2(A3, D4)
+    alpha = np.arctan2(s, r_planar)
+    beta = np.arccos(np.clip((A2**2 + L**2 - l_eff**2) / (2 * A2 * L), -1, 1))
+    gamma = np.arccos(np.clip((A2**2 + l_eff**2 - L**2) / (2 * A2 * l_eff), -1, 1))
+
+    theta2_A = np.pi/2 - (alpha + beta)
+    theta3_A = (gamma - phi) - np.pi/2
+
+    theta2_B = np.pi/2 - (alpha - beta)
+    theta3_B = (-gamma - phi) - np.pi/2
+
+    return [(theta1, theta2_A, theta3_A), (theta1, theta2_B, theta3_B)]
