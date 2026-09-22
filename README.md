@@ -4,8 +4,6 @@ Pick-and-place of Box B onto Box A with a Yaskawa Motoman GP7, fully in simulati
 
 ## Demo
 
-## Demo
-
 ![pick and place demo](media/pick_and_place_demo.gif)
 
 
