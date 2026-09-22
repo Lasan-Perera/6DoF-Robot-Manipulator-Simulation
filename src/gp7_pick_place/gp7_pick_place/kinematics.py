@@ -197,3 +197,24 @@ def solve_position_joints_elbow_variants(wc):
     theta3_B = (-gamma - phi) - np.pi/2
 
     return [(theta1, theta2_A, theta3_A), (theta1, theta2_B, theta3_B)]
+
+def solve_wrist_orientation_flip(theta4, theta5, theta6):
+    # this one flips the wrist orientation by 180
+    # the wrist singularity is at theta5 = 0, so this function is not valid there
+    return theta4 - np.pi, -theta5, theta6 - np.pi
+
+def inverse_kinematics_tcp_all_branches(target_pose_tcp):
+    # This function computes all possible inverse kinematics solutions
+    # this considers both elbow-up and elbow-down configurations, as well as wrist orientation flips. 
+    p_tcp = target_pose_tcp[:3, 3]
+    R06 = target_pose_tcp[:3, :3]
+    wc = p_tcp - (L_TCP + D6) * R06[:, 2]
+
+    branches = []
+    for (t1, t2, t3) in solve_position_joints_elbow_variants(wc):
+        t4, t5, t6 = solve_wrist_orientation(t1, t2, t3, R06)
+        branches.append([t1, t2, t3, t4, t5, t6])
+        t4f, t5f, t6f = solve_wrist_orientation_flip(t4, t5, t6)
+        branches.append([t1, t2, t3, t4f, t5f, t6f])
+
+    return branches
