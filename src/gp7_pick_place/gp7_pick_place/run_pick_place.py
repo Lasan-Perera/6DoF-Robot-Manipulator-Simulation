@@ -20,11 +20,11 @@ ACCEL = 1.0
 
 WAYPOINTS_XYZ = [
     [0.55, -0.25, 0.30],
-    [0.55, -0.25, 0.025],
+    [0.55, -0.25, 0.04],
     [0.55, -0.25, 0.30],
     [0.50,  0.50, 0.30],
-    [0.50,  0.50, 0.225],
-    [0.50,  0.50, 0.30],
+    [0.50,  0.50, 0.325],
+    [0.50,  0.50, 0.330],
 ]
 GRIPPER_ACTIONS = {1: 0.6, 4: 0.0}  # after arriving at waypoint index: close(1) / open(0)
 
@@ -50,7 +50,7 @@ class PickPlaceRunner(Node):
         self.gripper_pub = self.create_publisher(JointTrajectory, '/gripper_controller/joint_trajectory', 10)
         time.sleep(1.0)  # let publishers connect
 
-    def send_segment(self, points, dt):
+    def send_segment(self, points, dt, extra_settle=0.0):
         msg = JointTrajectory()
         msg.joint_names = ARM_JOINTS
         for i, q in enumerate(points):
@@ -63,7 +63,7 @@ class PickPlaceRunner(Node):
         self.arm_pub.publish(msg)
         tf = (len(points) - 1) * dt
         self.get_logger().info(f'segment: {len(points)} points, {tf:.2f}s')
-        time.sleep(tf + 0.3)
+        time.sleep(tf + 0.3 + extra_settle)
 
     def send_gripper(self, position, duration=1.5):
         msg = JointTrajectory()
@@ -90,7 +90,8 @@ def main():
     for i in range(len(solutions) - 1):
         q0, qf = solutions[i], solutions[i + 1]
         points = traj.generate_segment_trajectory(list(q0), list(qf), V_MAX, ACCEL, dt)
-        node.send_segment(points, dt)
+        extra = 0.0
+        node.send_segment(points, dt, extra_settle=extra)
 
         if (i + 1) in GRIPPER_ACTIONS:
             node.send_gripper(GRIPPER_ACTIONS[i + 1])
