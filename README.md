@@ -222,6 +222,58 @@ margin) at the grasp waypoint, opens fully at release. `check_tcp_pose()`
 confirms actual `tcp` position via TF immediately before each gripper action
 for live debugging.
 
+## Testing Sequences and Theory Extensions
+### Velocity kinematics (Jacobian)
+
+`jacobian.py` -- geometric Jacobian, `Jw_i = z_{i-1}`, `Jv_i = z_{i-1} x
+(o_n - o_{i-1})` per link (standard formulation). Converts D-H joint-velocity
+convention to physical joint velocity (same sign-flip issue as FK/IK).
+**Verified against finite-difference perturbation of `forward_kinematics()`**
+-- predicted vs numerical linear velocity match to 4 decimal places across
+all 6 joints.
+
+### Singularity / manipulability analysis
+
+`singularity.py` -- `manipulability()` (`w = sqrt(det(J.J^T))`),
+`singular_values()` (SVD), `jacobian_rank()`. **Verified against a known
+wrist singularity**: at theta5 = 0 (axes 4 and 6 become collinear), smallest
+singular value drops to 0.0000, rank drops 6->5, manipulability -> 0.0
+exactly, matching the analytical prediction.
+
+### Multiple IK solutions
+
+Extends `kinematics.py` with all three classic branch types for a
+spherical-wrist 6-DOF arm:
+- **Elbow-up/down** -- sign ambiguity in the law-of-cosines solve
+- **Wrist-flip** -- `theta4' = theta4 - pi, theta5' = -theta5, theta6' =
+  theta6 - pi`
+- **Shoulder-left/right** -- `theta1' = theta1 + pi` with the arm reaching
+  the wrist center from the opposite side of the base axis (`r_planar' =
+  -(r + a1)` instead of `r - a1`)
+
+All branches verified via FK round-trip (position error ~1e-16, machine
+precision) and filtered against real joint limits -- for a tested target,
+only 2 of the 4 elbow x wrist combinations are physically reachable; the
+shoulder-flip branch violates joint 1's limit. Demoed live in Gazebo
+(`demo_branches.py`): tool tip stays fixed while the arm visibly
+reconfigures between reachable branches.
+
+### Workspace / reachability analysis
+
+`workspace.py` -- random joint-space sampling (20,000 configs within real
+limits) through `forward_kinematics()`, producing a 3D reachable-point
+cloud (`report/images/workspace_plot.png`). Sampled max radius (1.30 m)
+checked against an analytical upper bound via the triangle inequality
+(1.45 m). **Found and documented a real limitation**: ~17% of samples place
+the TCP below ground -- kinematically reachable, physically impossible
+without collision, since pure joint-limit sampling doesn't account for
+self/environment collision.
+![Reachable workspace: 3D scatter, top-down XY, side R-Z](report/images/workspace_plot.png)
+
+*(Side view, right panel: the cluster of points below the dashed ground
+line is the ~17% of kinematically-reachable-but-physically-impossible
+samples noted above.)*
+
 ## Status
 
 - [x] GP7 model ported to ROS 2, Robotiq 2F-85 gripper attached, verified in RViz and Gazebo physics
@@ -231,4 +283,8 @@ for live debugging.
 - [x] Inverse kinematics — position/orientation decoupling, verified by FK round-trip AND live Gazebo TF cross-check
 - [x] Trajectory planning + LSPB velocity profile — verified against real waypoint data
 - [x] Pick-and-place execution — action-based, gripper actuation, working end to end in Gazebo
+- [x] Jacobian / velocity kinematics -- verified against finite-difference FK
+- [x] Singularity analysis -- verified against a known wrist singularity
+- [x] Multiple IK solutions -- elbow up/down, wrist-flip, shoulder left/right
+- [x] Workspace/reachability analysis -- 20k-sample point cloud, plotted
 - [ ] Report writeup
