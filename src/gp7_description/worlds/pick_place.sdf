@@ -69,5 +69,20 @@
       </link>
     </model>
 
+
+<model name="obstacle_1">
+      <static>true</static>
+      <pose>0.55 -0.25 0.20 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><sphere><radius>0.04</radius></sphere></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><sphere><radius>0.04</radius></sphere></geometry>
+          <material><ambient>0.8 0.1 0.1 1</ambient><diffuse>0.8 0.1 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
   </world>
 </sdf>
