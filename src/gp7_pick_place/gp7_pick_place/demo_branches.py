@@ -1,13 +1,3 @@
-"""
-Visual demo of multiple IK branches: home -> elbow-up (no flip) ->
-elbow-up (wrist-flip) -> home. Same TCP target pose throughout -- only
-the joint configuration changes.
-
-Elbow-down and shoulder-flip aren't included here: both violate real
-joint limits for this target (see kinematics.within_limits), so the
-controller can't physically execute them -- only home and the two
-elbow-up/wrist variants are safe to actually command.
-"""
 import numpy as np
 import rclpy
 from rclpy.action import ActionClient
