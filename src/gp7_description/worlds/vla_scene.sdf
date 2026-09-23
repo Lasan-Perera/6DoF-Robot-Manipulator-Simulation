@@ -137,5 +137,40 @@
         </visual>
       </link>
     </model>
+<model name="toy_truck">
+      <pose>0.35 -0.25 0.0175 0 0 0</pose>
+      <link name="link">
+        <inertial><mass>0.05</mass><inertia><ixx>2e-5</ixx><iyy>2e-5</iyy><izz>2e-5</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
+        <collision name="collision"><geometry><box><size>0.08 0.04 0.035</size></box></geometry></collision>
+        <visual name="visual">
+          <geometry><box><size>0.08 0.04 0.035</size></box></geometry>
+          <material><ambient>0.9 0.5 0.1 1</ambient><diffuse>0.9 0.5 0.1 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="vase">
+      <pose>0.6 -0.3 0.04 0 0 0</pose>
+      <link name="link">
+        <inertial><mass>0.05</mass><inertia><ixx>2e-5</ixx><iyy>2e-5</iyy><izz>2e-5</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
+        <collision name="collision"><geometry><cylinder><radius>0.02</radius><length>0.08</length></cylinder></geometry></collision>
+        <visual name="visual">
+          <geometry><cylinder><radius>0.02</radius><length>0.08</length></cylinder></geometry>
+          <material><ambient>0.5 0.1 0.6 1</ambient><diffuse>0.5 0.1 0.6 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="dustbin">
+      <pose>0.3 0.3 0.025 0 0 0</pose>
+      <link name="link">
+        <inertial><mass>0.05</mass><inertia><ixx>2e-5</ixx><iyy>2e-5</iyy><izz>2e-5</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
+        <collision name="collision"><geometry><cylinder><radius>0.03</radius><length>0.05</length></cylinder></geometry></collision>
+        <visual name="visual">
+          <geometry><cylinder><radius>0.03</radius><length>0.05</length></cylinder></geometry>
+          <material><ambient>0.4 0.4 0.4 1</ambient><diffuse>0.4 0.4 0.4 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
 </world>
 </sdf>
