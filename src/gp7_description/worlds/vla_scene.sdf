@@ -36,18 +36,25 @@
     <!-- Box A: 30x30x20 cm, at (1, 1, 0) per task sheet. Static — it's a target platform. -->
 <model name="overhead_camera">
       <static>true</static>
-      <pose>0.85 0.85 1.5 0 0 0</pose>
+      <pose>0 0 0 0 0 0</pose>
       <link name="link">
         <visual name="mount_pole">
-          <pose>0 0 -0.75 0 0 0</pose>
-          <geometry><cylinder><radius>0.02</radius><length>1.5</length></cylinder></geometry>
+          <pose>0.9 0.02 0.9 0 0 0</pose>
+          <geometry><cylinder><radius>0.02</radius><length>1.8</length></cylinder></geometry>
+          <material><ambient>0.2 0.2 0.2 1</ambient><diffuse>0.2 0.2 0.2 1</diffuse></material>
+        </visual>
+        <visual name="mount_boom">
+          <pose>0.71 0.02 1.8 0 1.5708 0</pose>
+          <geometry><cylinder><radius>0.015</radius><length>0.38</length></cylinder></geometry>
           <material><ambient>0.2 0.2 0.2 1</ambient><diffuse>0.2 0.2 0.2 1</diffuse></material>
         </visual>
         <visual name="camera_body">
+          <pose>0.52 0.02 1.8 0 0 0</pose>
           <geometry><box><size>0.06 0.10 0.06</size></box></geometry>
           <material><ambient>0.05 0.05 0.05 1</ambient><diffuse>0.05 0.05 0.05 1</diffuse></material>
         </visual>
         <sensor name="camera" type="camera">
+          <pose>0.52 0.02 1.8 0 1.5708 0</pose>
           <pose>0 0 0 0 1.5708 0</pose>
           <camera>
             <horizontal_fov>1.047</horizontal_fov>
@@ -114,6 +121,19 @@
         <visual name="visual">
           <geometry><box><size>0.05 0.05 0.05</size></box></geometry>
           <material><ambient>0.1 0.1 0.8 1</ambient><diffuse>0.1 0.1 0.8 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+<model name="box_b">
+      <static>true</static>
+      <pose>0.55 0.5 0.10 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>0.20 0.20 0.20</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.20 0.20 0.20</size></box></geometry>
+          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material>
         </visual>
       </link>
     </model>
