@@ -62,6 +62,13 @@ def generate_launch_description():
         output='screen',
     )
 
+    camera_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=['/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image'],
+        output='screen',
+    )
+
     joint_state_broadcaster_spawner = Node(
         package='controller_manager',
         executable='spawner',
@@ -123,6 +130,7 @@ def generate_launch_description():
         gz_sim,
         robot_state_publisher,
         clock_bridge,
+        camera_bridge,
         spawn_robot,
         delay_controllers,
         delay_gripper_open,
