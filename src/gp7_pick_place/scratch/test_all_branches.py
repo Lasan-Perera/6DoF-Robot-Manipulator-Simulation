@@ -1,3 +1,7 @@
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "gp7_pick_place"))
+
+# this code is to test the inverse kinematics function for all branches
 import numpy as np
 import kinematics as kin
 
