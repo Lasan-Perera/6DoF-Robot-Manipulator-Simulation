@@ -11,3 +11,4 @@ __pycache__/
 .vscode/
 *.swp
 .DS_Store
+src/gp7_pick_place/gp7_pick_place/vla/vla_venv/
