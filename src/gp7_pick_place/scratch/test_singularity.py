@@ -1,3 +1,6 @@
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "gp7_pick_place"))
+
 import numpy as np
 import singularity as sing
 
