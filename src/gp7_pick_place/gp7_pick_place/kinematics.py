@@ -218,3 +218,25 @@ def inverse_kinematics_tcp_all_branches(target_pose_tcp):
         branches.append([t1, t2, t3, t4f, t5f, t6f])
 
     return branches
+
+def solve_position_joints_shoulder_variants(wc):
+    # computes both shoulder solutions (shoulder-left, shoulder-right) for the same wrist center
+    xc, yc, zc = wc
+    theta1_fwd = np.arctan2(yc, xc)
+    r = np.hypot(xc, yc)
+    s = zc - D1
+    l_eff = np.hypot(A3, D4)
+    phi = np.arctan2(A3, D4)
+
+    def solve_for(theta1, r_planar):
+        L = np.hypot(r_planar, s)
+        alpha = np.arctan2(s, r_planar)
+        beta = np.arccos(np.clip((A2**2 + L**2 - l_eff**2) / (2*A2*L), -1, 1))
+        gamma = np.arccos(np.clip((A2**2 + l_eff**2 - L**2) / (2*A2*l_eff), -1, 1))
+        theta2 = np.pi/2 - (alpha + beta)
+        theta3 = (gamma - phi) - np.pi/2
+        return theta1, theta2, theta3
+
+    forward = solve_for(theta1_fwd, r - A1)
+    flipped = solve_for(theta1_fwd + np.pi, -(r + A1))
+    return [forward, flipped]
