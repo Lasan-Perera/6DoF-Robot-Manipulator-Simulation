@@ -30,10 +30,8 @@ APPROACH_HEIGHT = 0.30       # from run_pick_place.py
 GRIPPER_CLOSE = 0.75         # from run_pick_place.py
 GRIPPER_OPEN = 0.0
 
-# fixed place target: the white platform ("box B"), static, known position
-PLATFORM_X, PLATFORM_Y, PLATFORM_TOP_Z = 0.55, 0.5, 0.20
-# object half-height derived from its own top_z, not hardcoded --
-# every object rests on the ground (base z=0), so half-height = top_z/2
+# both pick and place targets now come from vision (two separate
+# locate_object.py runs, saved as pick_target.json / place_target.json)
 
 
 class VlaPickPlace(Node):
@@ -68,14 +66,14 @@ class VlaPickPlace(Node):
         self._run_goal(self.gripper_client, GRIPPER_JOINT, [([position], duration)], 'gripper')
 
 
-def solve_waypoints(pick_x, pick_y, pick_top_z, place_z):
+def solve_waypoints(pick_x, pick_y, pick_top_z, place_z, platform_x, platform_y):
     waypoints_xyz = [
         [pick_x, pick_y, APPROACH_HEIGHT],
         [pick_x, pick_y, pick_top_z],
         [pick_x, pick_y, APPROACH_HEIGHT],
-        [PLATFORM_X, PLATFORM_Y, APPROACH_HEIGHT],
-        [PLATFORM_X, PLATFORM_Y, place_z],
-        [PLATFORM_X, PLATFORM_Y, APPROACH_HEIGHT],
+        [platform_x, platform_y, APPROACH_HEIGHT],
+        [platform_x, platform_y, place_z],
+        [platform_x, platform_y, APPROACH_HEIGHT],
     ]
     solutions = []
     prev = None
@@ -88,19 +86,23 @@ def solve_waypoints(pick_x, pick_y, pick_top_z, place_z):
 
 
 def main():
-    with open('vla/target.json') as f:
-        target = json.load(f)
-    pick_x, pick_y, pick_top_z = target['world_x'], target['world_y'], target['top_z']
+    with open('vla/pick_target.json') as f:
+        pick = json.load(f)
+    with open('vla/place_target.json') as f:
+        place = json.load(f)
+
+    pick_x, pick_y, pick_top_z = pick['world_x'], pick['world_y'], pick['top_z']
+    platform_x, platform_y, platform_top_z = place['world_x'], place['world_y'], place['top_z']
+
     object_half_height = pick_top_z / 2
-    place_z = PLATFORM_TOP_Z + object_half_height
-    print(f"picking '{target['query']}' at ({pick_x:.3f}, {pick_y:.3f}, top_z={pick_top_z})")
-    print(f"object half-height: {object_half_height:.4f}, place_z: {place_z:.4f}")
-    print(f"placing on platform at ({PLATFORM_X}, {PLATFORM_Y}, {place_z:.4f})")
+    place_z = platform_top_z + object_half_height
+    print(f"picking '{pick['query']}' at ({pick_x:.3f}, {pick_y:.3f}, top_z={pick_top_z})")
+    print(f"placing on '{place['query']}' at ({platform_x:.3f}, {platform_y:.3f}), place_z={place_z:.4f}")
 
     rclpy.init()
     node = VlaPickPlace()
 
-    solutions = solve_waypoints(pick_x, pick_y, pick_top_z, place_z)
+    solutions = solve_waypoints(pick_x, pick_y, pick_top_z, place_z, platform_x, platform_y)
     dt = 0.05
 
     # home -> waypoint 1 first, avoids the startup jerk (see run_pick_place.py)

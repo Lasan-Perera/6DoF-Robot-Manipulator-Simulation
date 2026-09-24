@@ -124,51 +124,38 @@
         </visual>
       </link>
     </model>
-<model name="box_b">
+<model name="platform_red">
       <static>true</static>
-      <pose>0.55 0.5 0.10 0 0 0</pose>
+      <pose>0.55 -0.35 0.025 0 0 0</pose>
       <link name="link">
-        <collision name="collision">
-          <geometry><box><size>0.20 0.20 0.20</size></box></geometry>
-        </collision>
+        <collision name="collision"><geometry><box><size>0.15 0.15 0.05</size></box></geometry></collision>
         <visual name="visual">
-          <geometry><box><size>0.20 0.20 0.20</size></box></geometry>
-          <material><ambient>0.85 0.85 0.85 1</ambient><diffuse>0.85 0.85 0.85 1</diffuse></material>
-        </visual>
-      </link>
-    </model>
-<model name="toy_truck">
-      <pose>0.35 -0.25 0.0175 0 0 0</pose>
-      <link name="link">
-        <inertial><mass>0.05</mass><inertia><ixx>2e-5</ixx><iyy>2e-5</iyy><izz>2e-5</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
-        <collision name="collision"><geometry><box><size>0.08 0.04 0.035</size></box></geometry></collision>
-        <visual name="visual">
-          <geometry><box><size>0.08 0.04 0.035</size></box></geometry>
-          <material><ambient>0.9 0.5 0.1 1</ambient><diffuse>0.9 0.5 0.1 1</diffuse></material>
+          <geometry><box><size>0.15 0.15 0.05</size></box></geometry>
+          <material><ambient>0.8 0.1 0.1 1</ambient><diffuse>0.8 0.1 0.1 1</diffuse></material>
         </visual>
       </link>
     </model>
 
-    <model name="vase">
-      <pose>0.6 -0.3 0.04 0 0 0</pose>
+    <model name="platform_green">
+      <static>true</static>
+      <pose>0.65 0.3 0.025 0 0 0</pose>
       <link name="link">
-        <inertial><mass>0.05</mass><inertia><ixx>2e-5</ixx><iyy>2e-5</iyy><izz>2e-5</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
-        <collision name="collision"><geometry><cylinder><radius>0.02</radius><length>0.08</length></cylinder></geometry></collision>
+        <collision name="collision"><geometry><box><size>0.15 0.15 0.05</size></box></geometry></collision>
         <visual name="visual">
-          <geometry><cylinder><radius>0.02</radius><length>0.08</length></cylinder></geometry>
-          <material><ambient>0.5 0.1 0.6 1</ambient><diffuse>0.5 0.1 0.6 1</diffuse></material>
+          <geometry><box><size>0.15 0.15 0.05</size></box></geometry>
+          <material><ambient>0.1 0.7 0.1 1</ambient><diffuse>0.1 0.7 0.1 1</diffuse></material>
         </visual>
       </link>
     </model>
 
-    <model name="dustbin">
-      <pose>0.3 0.3 0.025 0 0 0</pose>
+    <model name="platform_blue">
+      <static>true</static>
+      <pose>0.3 0.4 0.025 0 0 0</pose>
       <link name="link">
-        <inertial><mass>0.05</mass><inertia><ixx>2e-5</ixx><iyy>2e-5</iyy><izz>2e-5</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
-        <collision name="collision"><geometry><cylinder><radius>0.03</radius><length>0.05</length></cylinder></geometry></collision>
+        <collision name="collision"><geometry><box><size>0.15 0.15 0.05</size></box></geometry></collision>
         <visual name="visual">
-          <geometry><cylinder><radius>0.03</radius><length>0.05</length></cylinder></geometry>
-          <material><ambient>0.4 0.4 0.4 1</ambient><diffuse>0.4 0.4 0.4 1</diffuse></material>
+          <geometry><box><size>0.15 0.15 0.05</size></box></geometry>
+          <material><ambient>0.1 0.1 0.8 1</ambient><diffuse>0.1 0.1 0.8 1</diffuse></material>
         </visual>
       </link>
     </model>
