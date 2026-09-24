@@ -1,11 +1,22 @@
 # EN3563 Mini Project — GP7 Pick-and-Place (Gazebo simulation)
 
-Pick-and-place of Box B onto Box A with a Yaskawa Motoman GP7, fully in simulation.
-
 ## Demo
+
+Pick-and-place of Box B onto Box A with a Yaskawa Motoman GP7, fully in simulation.
 
 ![pick and place demo](media/pick_and_place_demo.gif)
 
+## Demo 2 — vision-driven pick-and-place (VLA extension)
+
+![VLA vision-driven sequence demo](media/vla_sequence_demo.gif)
+
+*(Beyond the assignment: a small vision-language pipeline — Moondream2 locates
+each colored box and platform from a live camera image, converts pixel
+coordinates to 3D world positions, and feeds them into the same verified
+IK/trajectory pipeline above. Sequence shown: red box → red platform, blue
+box → blue platform, green box → green platform, matched purely from a
+natural-language description of each object, not hardcoded coordinates. See
+`src/gp7_pick_place/gp7_pick_place/vla/` for the full pipeline.)*
 
 ## Structure
 
@@ -16,10 +27,12 @@ Pick-and-place of Box B onto Box A with a Yaskawa Motoman GP7, fully in simulati
 │       ├── dh-frames.jpg         hand-drawn coordinate frame assignment
 │       └── datasheet_image.jpg   Yaskawa dimensional drawing, used to sanity-check link lengths
 ├── media/
-│   └── pick_and_place_demo.mp4   screen-recorded simulation video
+│   ├── pick_and_place_demo.mp4   screen-recorded simulation video
+│   └── vla_sequence_demo.mp4     screen-recorded VLA sequence video
 └── src/
     ├── gp7_description/          URDF/xacro, meshes, worlds, ros2_control + Gazebo bring-up
     └── gp7_pick_place/           FK/IK, trajectory planning, velocity control, mission node
+        └── vla/                  Moondream2-based perception -> world-position pipeline
 ```
 
 ## Setup
@@ -268,11 +281,44 @@ checked against an analytical upper bound via the triangle inequality
 the TCP below ground -- kinematically reachable, physically impossible
 without collision, since pure joint-limit sampling doesn't account for
 self/environment collision.
+
 ![Reachable workspace: 3D scatter, top-down XY, side R-Z](report/images/workspace_plot.png)
 
 *(Side view, right panel: the cluster of points below the dashed ground
 line is the ~17% of kinematically-reachable-but-physically-impossible
 samples noted above.)*
+
+### Vision-driven pick-and-place (VLA extension)
+
+`gp7_pick_place/vla/` -- a small vision-language perception layer bolted
+onto the existing, already-verified motion pipeline, kept in a fully
+separate Gazebo scene (`vla_scene.sdf`, `vla_gazebo.launch.py`) so the
+graded assignment scene is never touched.
+
+- **Overhead camera** (`vla_scene.sdf`) bridged to ROS via `ros_gz_bridge`,
+  mounted on an offset pole + horizontal boom so the mount itself doesn't
+  obstruct the camera's own view.
+- **Perception**: Moondream2 (2B params, CPU inference, isolated Python venv
+  to avoid a `transformers`/`rclpy` dependency clash), queried with a plain
+  description of the target object, returns a normalized pixel point.
+- **Pixel -> world position** (`pixel_to_world.py`): pinhole projection,
+  coefficients fitted against 4 known pixel<->world correspondences rather
+  than assumed from camera-frame convention -- confirmed within 2cm of
+  ground truth on every point checked.
+- **Execution**: the located 3D positions feed straight into the same
+  `inverse_kinematics_tcp()` / `trajectory.py` / action-based execution
+  used throughout this project -- no new motion code.
+
+**Real finding**: bare color queries ("the blue box") are ambiguous when a
+same-colored flat platform is also in frame -- Moondream matched "blue box"
+to the visually box-like platform instead of the actual cube. Fixed with
+shape-disambiguating phrasing ("the small blue cube" vs "the wide flat blue
+platform").
+
+Scripts: `capture_frame.py` (save a camera frame), `gather_targets.py`
+(batch-query Moondream for a whole pick/place sequence, venv side),
+`execute_sequence.py` (read the gathered targets, run the full sequence,
+ROS side, no venv needed).
 
 ## Status
 
@@ -287,4 +333,6 @@ samples noted above.)*
 - [x] Singularity analysis -- verified against a known wrist singularity
 - [x] Multiple IK solutions -- elbow up/down, wrist-flip, shoulder left/right
 - [x] Workspace/reachability analysis -- 20k-sample point cloud, plotted
+- [x] Vision-driven pick-and-place (VLA extension) -- Moondream2 perception,
+      verified pixel-to-world projection, full 3-object sequence demoed live
 - [ ] Report writeup
