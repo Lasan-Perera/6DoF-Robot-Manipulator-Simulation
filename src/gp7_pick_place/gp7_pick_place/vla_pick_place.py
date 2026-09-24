@@ -27,6 +27,7 @@ ACCEL = 1.0
 R_DOWN = np.diag([1.0, -1.0, -1.0])
 
 APPROACH_HEIGHT = 0.30       # from run_pick_place.py
+RELEASE_OFFSET = 0.03        # release this far above place_z, not exactly at it
 GRIPPER_CLOSE = 0.75         # from run_pick_place.py
 GRIPPER_OPEN = 0.0
 
@@ -72,7 +73,7 @@ def solve_waypoints(pick_x, pick_y, pick_top_z, place_z, platform_x, platform_y)
         [pick_x, pick_y, pick_top_z],
         [pick_x, pick_y, APPROACH_HEIGHT],
         [platform_x, platform_y, APPROACH_HEIGHT],
-        [platform_x, platform_y, place_z],
+        [platform_x, platform_y, place_z + RELEASE_OFFSET],
         [platform_x, platform_y, APPROACH_HEIGHT],
     ]
     solutions = []

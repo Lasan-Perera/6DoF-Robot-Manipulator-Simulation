@@ -1,0 +1,44 @@
+[
+  {
+    "pick": {
+      "query": "the small red cube",
+      "world_x": 0.5007640782200732,
+      "world_y": -0.1555894398372805,
+      "top_z": 0.05
+    },
+    "place": {
+      "query": "the wide flat red square",
+      "world_x": 0.5555124709783265,
+      "world_y": -0.35682677538113,
+      "top_z": 0.05
+    }
+  },
+  {
+    "pick": {
+      "query": "the small blue cube",
+      "world_x": 0.40014541044814844,
+      "world_y": 0.15218530864154822,
+      "top_z": 0.05
+    },
+    "place": {
+      "query": "the wide flat blue square",
+      "world_x": 0.29360799751316935,
+      "world_y": 0.39090803021807563,
+      "top_z": 0.05
+    }
+  },
+  {
+    "pick": {
+      "query": "the small green cube",
+      "world_x": 0.6502123935871968,
+      "world_y": 0.05353955592397493,
+      "top_z": 0.05
+    },
+    "place": {
+      "query": "the wide flat green square",
+      "world_x": 0.6502123935871968,
+      "world_y": 0.2902893624461509,
+      "top_z": 0.05
+    }
+  }
+]
