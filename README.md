@@ -1,4 +1,4 @@
-# EN3563 Mini Project — GP7 Pick-and-Place (Gazebo simulation)
+# GP7 Pick-and-Place (Gazebo simulation)
 
 ## Demo
 
