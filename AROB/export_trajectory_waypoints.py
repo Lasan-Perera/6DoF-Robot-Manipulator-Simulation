@@ -20,7 +20,7 @@ exp1_xyz = [
 # Experiment 2: grasp (start) -> lift (via 1) -> mid-transit, raised (via 2)
 # -> place-approach (end)
 exp2_xyz = [
-    [0.55, -0.25, 0.04],   # grasp (start, must-stop)
+    [0.55, -0.25, 0.06],   # grasp (start, must-stop)
     [0.55, -0.25, 0.30],   # lift (via-point 1)
     [0.525, 0.125, 0.50],  # mid-transit, raised (via-point 2, new)
     [0.50,  0.50,  0.30],  # place-approach (end, must-stop)
@@ -47,10 +47,18 @@ print("\nExperiment 2 (grasp -> lift -> mid-transit -> place-approach):")
 for xyz, q in zip(exp2_xyz, exp2_q):
     print(f"  xyz={xyz}  q(deg)={np.round(np.rad2deg(q), 3).tolist()}")
 
+V_MAX = 0.5   # rad/s -- TODO: confirm final Table 1 value
+ACCEL = 1.0   # rad/s^2 -- TODO: confirm final Table 1 value
+
 with open("lspb.json", "w") as f:
     json.dump({"q0": exp1_q[0], "qf": exp1_q[1]}, f, indent=2)
 
-with open("via_point.json", "w") as f:
-    json.dump({"waypoints": exp2_q}, f, indent=2)
+import os
+os.makedirs("data/verification", exist_ok=True)
+with open("data/verification/via_point.json", "w") as f:
+    json.dump({
+        "q0": exp2_q[0], "qv1": exp2_q[1], "qv2": exp2_q[2], "qf": exp2_q[3],
+        "v_max": V_MAX, "accel": ACCEL,
+    }, f, indent=2)
 
-print("\nwrote lspb.json, via_point.json")
+print("\nwrote lspb.json, data/verification/via_point.json")

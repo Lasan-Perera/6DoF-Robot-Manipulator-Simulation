@@ -111,36 +111,45 @@ def fit_segment_times(waypoints, v_max, a_max):
 
 def generate_via_point_trajectory(waypoints, v_max, a_max, dt=0.05):
     """
-    waypoints: (n, ndof) array/list. Returns (trajectory, T) where
-    trajectory is a list of ndof-vectors sampled at dt across the WHOLE
-    multi-segment path, and T is the (n-1,) array of segment durations.
+    waypoints: (n, ndof) array/list. Returns (ts, pos, vel, acc, T,
+    peak_v, peak_a) -- ts is the GLOBAL time axis across the whole
+    multi-segment path (0 at the first waypoint, cumulative across
+    segments), pos/vel/acc are (len(ts), ndof) arrays, T is the (n-1,)
+    array of segment durations.
     """
     waypoints = np.asarray(waypoints, dtype=float)
     n, ndof = waypoints.shape
     T, peak_v, peak_a = fit_segment_times(waypoints, v_max, a_max)
 
     all_coeffs = []
-    all_v = []
     for j in range(ndof):
         coeffs, v = solve_clamped_spline_single_joint(waypoints[:, j], T)
         all_coeffs.append(coeffs)
-        all_v.append(v)
 
-    trajectory = []
+    ts_list, pos_list, vel_list, acc_list = [], [], [], []
     t_global = 0.0
     for i in range(len(T)):
         t = 0.0
         while t < T[i]:
-            point = []
+            p_row, v_row, a_row = [], [], []
             for j in range(ndof):
                 a0, a1, a2, a3 = all_coeffs[j][i]
-                pos, _, _ = eval_segment(a0, a1, a2, a3, t)
-                point.append(pos)
-            trajectory.append(point)
+                pos, vel, acc = eval_segment(a0, a1, a2, a3, t)
+                p_row.append(pos); v_row.append(vel); a_row.append(acc)
+            ts_list.append(t_global + t)
+            pos_list.append(p_row); vel_list.append(v_row); acc_list.append(a_row)
             t += dt
         t_global += T[i]
 
-    # final point exactly at the last waypoint
-    trajectory.append(list(waypoints[-1]))
+    # final point exactly at the last waypoint, zero velocity/accel (clamped end)
+    ts_list.append(t_global)
+    pos_list.append(list(waypoints[-1]))
+    vel_list.append([0.0] * ndof)
+    acc_list.append([0.0] * ndof)
 
-    return trajectory, T, peak_v, peak_a
+    ts = np.array(ts_list)
+    pos = np.array(pos_list)
+    vel = np.array(vel_list)
+    acc = np.array(acc_list)
+
+    return ts, pos, vel, acc, T, peak_v, peak_a
