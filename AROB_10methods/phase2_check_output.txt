@@ -1,0 +1,37 @@
+
+[1] Experiment 1 duration and phase structure vs briefing
+      T=1.5751  regime 1  Tj=0.1288  Ta=0.6288  Tv=0.3176  a_lim=1.0000
+PASS  T = 1.5751 (briefing 1.5751)
+PASS  regime 1 with Tj 0.1288, Ta 0.6288, Tv 0.3176
+
+[2] six-joint profile on the real segment
+PASS  endpoints: pos err 0.0e+00, vel/acc at both ends 4.4e-16
+PASS  time grid strictly increasing, ends at T
+PASS  same s(tau) on every moving joint (straight joint-space path), max dev 8.9e-16
+PASS  non-pacing joints have peaks scaled by |dq_j|/|dq_pace|
+PASS  pacing joint respects v_max, a_max and j_max
+
+[3] all three regimes through the six-joint wrapper (regime 2 needs 2a^3/j^2 < h < ~0.31 rad)
+PASS  regime 1 (Exp 1 segment)       h=0.473195 T=1.5751  regime 1 (want 1)  endpoints/limits hold, mixed-sign joints
+PASS  regime 2 (v_max not reached)   h=0.1     T=0.7742  regime 2 (want 2)  endpoints/limits hold, mixed-sign joints
+PASS  regime 3 (no limit reached)    h=0.02    T=0.4352  regime 3 (want 3)  endpoints/limits hold, mixed-sign joints
+PASS  regime 3, very short           h=0.0005  T=0.1272  regime 3 (want 3)  endpoints/limits hold, mixed-sign joints
+
+[4] derivatives are mutually consistent (integrate a -> v -> q on a 1 us grid)
+PASS  int(a)=v to 5.7e-12, int(v)=q to 2.5e-12
+
+[5] analytic peaks: exact at the peak instants, never exceeded by any sample; ISJ vs dense sum
+PASS  Exp 1 segment  peak err at exact instants 0.0e+00, none exceeded: True;  ISJ exact 31.0669, dense sum 31.0670 (rel 3.4e-06, boundary error is O(dt/Tj))
+PASS  regime 2       peak err at exact instants 0.0e+00, none exceeded: True;  ISJ exact 31.0669, dense sum 31.0670 (rel 3.4e-06, boundary error is O(dt/Tj))
+PASS  regime 3       peak err at exact instants 1.5e-16, none exceeded: True;  ISJ exact 26.2496, dense sum 26.2497 (rel 3.3e-06, boundary error is O(dt/Tj))
+PASS  very short     peak err at exact instants 2.2e-16, none exceeded: True;  ISJ exact 7.6754, dense sum 7.6755 (rel 6.8e-06, boundary error is O(dt/Tj))
+
+[6] single-joint agreement with double_s.py itself
+PASS  pos vs double_s.evaluate: 0.0e+00
+
+[7] Experiment 2 stitched double-S durations (NOT in the briefing table; recorded here)
+      segments: 1.5151 s (regime 1); 1.9495 s (regime 1); 1.7321 s (regime 1); total 5.1967 s
+PASS  independent relation: T_double-S = T_LSPB + a_max/j_max = +0.12875 s on every segment (differences [0.12875, 0.12875, 0.12875])
+PASS  same relation on the Experiment 1 segment: 1.4464 + 0.1288 = 1.5751
+
+ALL PHASE 2 CHECKS PASS
