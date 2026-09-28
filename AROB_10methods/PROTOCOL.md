@@ -281,6 +281,31 @@ Anything found by inspecting the results and not listed above is labelled
 - No number enters the paper except through a macro generated from logged data.
 - Unverifiable reference or number → `[VERIFY]`, never a guess.
 
+## 9b. Pre-run findings (2026-09-28, before any run)
+
+Found while preparing `CHAT_BRIEFING.md`. None changes a fixed value; items 4-7
+are decisions to record here, with a date, before run 1.
+
+1. **`j_max` binds for modified sine on Exp 2 segment 1** (needs 460 deg/s^3 at
+   its velocity-limited duration; T = 1.5826 s instead of 1.5595 s). It binds
+   nowhere else. Report it as a result.
+2. **The 445.0 deg/s^3 basis for `j_max` does not reproduce.** Analytically, on
+   the waypoints that ran, the four-method stitched quintic peaks at 331.9 and
+   the cubic at 70.3 (reported 445.0 and 84.0). Stitched durations do reproduce.
+   `j_max` = 445.0 stays as a chosen limit, not a derived one.
+3. **Exp 2 carries a grasped box.** The gravity model must include the gripper
+   links and the box, or the box's weight stays inside `tau_dyn`.
+4. **Tracking-RMSE alignment is biased by goal-acceptance latency.** The log's
+   t = 0 precedes the controller's start, giving an error of about velocity x
+   latency, which grows with commanded speed. Recommended fix: schedule the
+   start with `header.stamp` and align to it.
+5. **Blended LSPB is underspecified:** whether it passes exactly through
+   interior waypoints, and how its segment durations are set.
+6. **TOPP-RA floor in Exp 2:** methods follow different geometric paths.
+   Recommended: each method's floor along its own path.
+7. **Spearman jerk ranks:** LSPB's jerk is impulsive. Recommended: rank
+   impulsive profiles highest (tied), report with and without them.
+
 ## 10. Change log
 
 Any change after the first run is recorded here with the date, the reason, and
@@ -289,3 +314,6 @@ which runs were discarded.
 | Date | Change | Runs discarded |
 |---|---|---|
 | 2026-09-28 | Protocol written. No runs yet. | — |
+| 2026-09-28 | §12 decisions settled, defaults taken: (1) 30 repeats per profile, 540 runs; (2) tracking alignment by scheduled header.stamp; (3) primary execution time = sim time, wall time also logged; (4) blended LSPB passes exactly through interior waypoints (pseudo-via-points); (5) blended LSPB linear-segment durations: pacing joint cruises at v_max; (6) TOPP-RA floor along each method's own path; (7) impulsive-jerk profiles ranked highest (tied), jerk correlation reported with and without them; (8) pre-positioning always executed, then wait for settling; (9) j_max = 445.0 deg/s^3 kept as a chosen limit | — |
+| 2026-09-28 | Added to §8: Mann-Whitney U reported alongside Welch's t for every contrast. Added to phase 6 smoke test: per-run tracking RMSE must not sit on a few discrete levels; if it still does after the alignment fix, investigate before run 1 | — |
+| 2026-09-28 | §9b corrected. Item 2: the earlier Exp 2 jerk row (cubic 84.0, quintic 445.0, B-spline 66.7 deg/s^3) was computed on the z=0.14 grasp waypoint, not the z=0.05 one that ran; on the waypoints that ran: 70.3, 331.9, 52.8. The 445.0 basis was therefore an error; j_max stays as a chosen limit. Item 1: without the jerk term, modsine Exp 2 seg 1 is acceleration-limited at 1.5652 s (velocity term 1.5596 s) and needs 460.0 deg/s^3; j_max lengthens it to 1.5826 s | — |
