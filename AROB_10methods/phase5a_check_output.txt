@@ -1,0 +1,18 @@
+[1] mass total (incl. base_link, kept for this check only)
+PASS  total = 34.001 kg (expect ~34.0, xacro values round to 3dp)
+
+[2] raw_fk.tool0_frame vs the already-Gazebo-verified D-H forward_kinematics
+PASS  worst |D-H - raw| over 50 random configs: 8.19e-16
+
+[3] joint 1 gravity torque is EXACTLY zero for any q (vertical axis)
+PASS  worst |tau_1| over 500 random configs: 0.0
+
+[4] analytic gravity torque vs finite-difference potential energy (the decisive check)
+PASS  worst |analytic - numeric| over 300 random configs: 2.63e-08 N*m
+
+[5] at q=0, effort limits are not exceeded by gravity alone (sanity, not a hard requirement)
+      torques at q=0: [-0.0, -10.6416, 13.3465, 0.0045, 0.1364, -0.0]
+      joint effort limits: [212.66, 205.8, 106.82, 55.86, 32.68, 22.54]
+PASS  gravity-only holding torque stays within each joint's rated effort at q=0
+
+ALL PHASE 5a CHECKS PASS

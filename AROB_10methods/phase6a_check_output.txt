@@ -1,0 +1,13 @@
+[1] matches the already-verified LSPB value (crosscheck_toppra.py got 1.36e-6 s single-joint)
+PASS  floor=1.446391  LSPB T=1.446389  diff=1.37e-06
+
+[2] stable under sample-density refinement (must NOT drift)
+PASS  floors at 4 sample densities: [1.446391, 1.446391, 1.446391, 1.446391], spread 1.97e-11
+
+[3] floor depends only on path GEOMETRY, not on which method generated the samples
+PASS  floor from cubic's own samples of the SAME straight line: 1.446390749 vs 1.446390749
+
+[4] curved path (B-spline): floor must be <= the methods own actual time
+PASS  B-spline T=4.7676  floor=4.0928  (% opt would be 85.8%)
+
+ALL PHASE 6a CHECKS PASS
