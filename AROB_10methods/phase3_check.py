@@ -27,7 +27,7 @@ phases, T, dev = LB.plan(np.array([q0, qf]), V, A)
 check(dev == {}, 'no deviations reported on 2 waypoints')
 ts_ref, pos_ref, vel_ref, acc_ref, tb_ref, tf_ref = lfp.lspb_full_profile(q0, qf, V, A, dt=0.001)
 check(abs(T - tf_ref) < 1e-9, f"T = {T:.6f} vs lspb_full_profile {tf_ref:.6f}")
-ts, pos, vel, _ = LB.full_profile(np.array([q0, qf]), T, 0.001, V, A)
+ts, pos, vel, acc, _ = LB.full_profile(np.array([q0, qf]), T, 0.001, V, A)
 n = min(len(ts), len(ts_ref))
 check(np.max(np.abs(pos[:n] - pos_ref[:n])) < 1e-9,
       f"position matches lspb_full_profile.lspb_full_profile, max diff {np.max(np.abs(pos[:n]-pos_ref[:n])):.2e}")
@@ -37,7 +37,7 @@ for path in ('data/verification/via_point.json', 'via_point.json'):
     if os.path.exists(path): vp = json.load(open(path)); break
 W = np.array([vp['q0'], vp['qv1'], vp['qv2'], vp['qf']])
 phases, T, dev = LB.plan(W, V, A)
-ts, pos, vel, dev2 = LB.full_profile(W, T, 0.001, V, A)
+ts, pos, vel, acc, dev2 = LB.full_profile(W, T, 0.001, V, A)
 check(np.max(np.abs(pos[0]-W[0])) < 1e-13 and np.max(np.abs(vel[0])) < 1e-13,
       f"start: pos err {np.max(np.abs(pos[0]-W[0])):.1e}, vel {np.max(np.abs(vel[0])):.1e}")
 check(np.max(np.abs(pos[-1]-W[3])) < 1e-10 and np.max(np.abs(vel[-1])) < 1e-13,
@@ -67,12 +67,20 @@ rng = np.random.default_rng(0)
 W2 = np.cumsum(rng.uniform(-0.9, 0.9, size=(4, 6)), axis=0)  # comparable scale to the real waypoints
 try:
     phases2, T2_, dev2_ = LB.plan(W2, V, A)
-    ts2, pos2, vel2, _ = LB.full_profile(W2, T2_, 0.001, V, A)
+    ts2, pos2, vel2, acc2, _ = LB.full_profile(W2, T2_, 0.001, V, A)
     ok = (np.max(np.abs(pos2[0]-W2[0])) < 1e-12 and np.max(np.abs(vel2[0])) < 1e-12
           and np.max(np.abs(pos2[-1]-W2[3])) < 1e-9 and np.max(np.abs(vel2[-1])) < 1e-12)
     check(ok, f"random 4-waypoint case: endpoints and zero end-velocity hold, T={T2_:.4f}")
 except ValueError as e:
     check(False, f"random case raised: {e}")
+
+print('\n[5] NEWLY RETURNED acceleration integrates back to velocity (added when full_profile was fixed to actually return acc, not silently drop it)')
+dt_fine = 0.0005
+ts5, pos5, vel5, acc5, _ = LB.full_profile(W, T, dt_fine, V, A)
+v_int = np.cumsum(acc5[:-1] * dt_fine, axis=0)
+v_int = np.vstack([np.zeros((1, 6)), v_int]) + vel5[0]
+e5 = float(np.max(np.abs(v_int - vel5)))
+check(e5 < 1e-3, f"integral of returned acc matches returned vel, max diff {e5:.2e} (Euler integration truncation, dt={dt_fine})")
 
 print('\n' + ('ALL PHASE 3 CHECKS PASS' if not fails else f'{len(fails)} FAILURE(S)'))
 sys.exit(1 if fails else 0)
