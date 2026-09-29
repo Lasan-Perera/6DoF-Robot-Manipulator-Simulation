@@ -78,7 +78,7 @@ class Exp2Runner(Node):
         t = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
         self.log_times.append(t); self.log_positions.append(pos); self.log_efforts.append(eff)
 
-    def get_current_position(self, timeout_sec=3.0):
+    def get_current_position(self, timeout_sec=8.0):
         start = time.time()
         while self.latest_position is None and time.time() - start < timeout_sec:
             rclpy.spin_once(self, timeout_sec=0.1)
