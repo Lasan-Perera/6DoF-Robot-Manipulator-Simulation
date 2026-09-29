@@ -16,4 +16,7 @@ PASS  qv2: analytic max|dev|=0.0586 rad, sampled max|dev|=0.0586 rad, diff 4.1e-
 [4] mixed-sign synthetic waypoints (robustness beyond the one real case)
 PASS  random 4-waypoint case: endpoints and zero end-velocity hold, T=5.6673
 
+[5] NEWLY RETURNED acceleration integrates back to velocity (added when full_profile was fixed to actually return acc, not silently drop it)
+PASS  integral of returned acc matches returned vel, max diff 3.56e-04 (Euler integration truncation, dt=0.0005)
+
 ALL PHASE 3 CHECKS PASS

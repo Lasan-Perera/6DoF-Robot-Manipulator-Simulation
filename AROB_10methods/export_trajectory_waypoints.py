@@ -14,7 +14,7 @@ R_DOWN = np.diag([1.0, -1.0, -1.0])
 # Experiment 1: single must-stop segment (approach -> grasp)
 exp1_xyz = [
     [0.55, -0.25, 0.30],   # approach
-    [0.55, -0.25, 0.04],   # grasp
+    [0.55, -0.25, 0.06],   # grasp (changed 2026-09-29 to match Exp 2's grasp height)
 ]
 
 # Experiment 2: grasp (start) -> lift (via 1) -> mid-transit, raised (via 2)

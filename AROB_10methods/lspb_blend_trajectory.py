@@ -139,20 +139,28 @@ class LspbBlend:
         return self.plan(W, v_max, a_max)[1]
 
     def full_profile(self, W, T, dt, v_max, a_max, j_max=None):
+        """Returns (ts, pos, vel, acc, deviations). acc was previously
+        dropped here even though every phase already carries its own
+        constant acceleration -- caught while wiring this into the live
+        run driver: sending a zero-acceleration command to the real
+        controller for this method would have corrupted its own tracking
+        results as an artifact of this omission, not a real property of
+        the method."""
         phases, T_check, deviations = self.plan(W, v_max, a_max)
         if abs(T - T_check) > 1e-9:
             raise ValueError(f'T={T} does not match the construction ({T_check})')
         ts = _time_grid(T, dt)
         ndof = np.asarray(W).shape[1]
-        pos = np.zeros((len(ts), ndof)); vel = np.zeros((len(ts), ndof))
+        pos = np.zeros((len(ts), ndof)); vel = np.zeros((len(ts), ndof)); acc = np.zeros((len(ts), ndof))
         t_cursor = 0.0
         for kind, dur, p0, v0, a in phases:
             m = (ts >= t_cursor - 1e-12) & (ts <= t_cursor + dur + 1e-9)
             tt = np.clip(ts[m], t_cursor, t_cursor + dur) - t_cursor
             pos[m] = p0[None, :] + v0[None, :] * tt[:, None] + 0.5 * a[None, :] * (tt[:, None] ** 2)
             vel[m] = v0[None, :] + a[None, :] * tt[:, None]
+            acc[m] = a[None, :]
             t_cursor += dur
-        return ts, pos, vel, deviations
+        return ts, pos, vel, acc, deviations
 
 
 METHOD = LspbBlend()
