@@ -1,0 +1,19 @@
+[1] gripper mass is state-independent and left/right mirror-symmetric
+PASS  total mass identical at 4 knuckle angles: 0.920864 kg
+PASS  total gripper mass = 0.920864 kg
+PASS  worst |lumped com_x| over 30 states: 1.24e-05 (mirror symmetry)
+
+[2] full-model gravity torque vs finite-difference potential energy
+PASS  gripper open, no box         worst |analytic-numeric| over 200 configs: 3.35e-08 N*m
+PASS  gripper closed, carrying box worst |analytic-numeric| over 200 configs: 3.94e-08 N*m
+
+[3] joint 1 torque is EXACTLY zero, full model, any gripper/box state
+PASS  worst |tau_1| over 300 random configs: 0.0
+
+[4] adding mass monotonically increases joint 2 holding torque at home pose (physical sanity)
+PASS  |tau_2|: arm-only 10.642 < +gripper 15.768 < +box 16.407 N*m
+
+[5] effort limits, full model at home pose (sanity, not a hard requirement)
+PASS  gravity-only holding torque (gripper closed + box) within rated effort: [-0.0, -16.4072, 19.1121, 0.0041, 1.4956, -0.0004]
+
+ALL PHASE 5b CHECKS PASS
