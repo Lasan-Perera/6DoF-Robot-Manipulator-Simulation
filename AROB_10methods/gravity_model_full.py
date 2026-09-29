@@ -9,10 +9,12 @@ Confirmed from gp7.urdf.xacro (2026-09-29), not assumed:
     <origin xyz="0 0 0.112"/>; its comment says "along its x-axis", which
     is stale -- the code, not the comment, is what Gazebo executes, and it
     matches what tcp_position() has computed throughout this project)
-  - grasp targets tcp at world z=0.04 (export_trajectory_waypoints.py);
+  - Experiment 2s grasp (exp2_xyz) targets tcp at world z=0.06, NOT Exp 1s
+    separate, unrelated z=0.04 segment -- conflating the two was a real bug
+    caught 2026-09-29, before any live run used it.
     box_b's own resting COM is world (0.55,-0.25,0.025) (pick_place.sdf),
     same X,Y as the grasp (centered, top-down grasp) -- so box COM relative
-    to tcp at grasp, held constant while rigidly carried, is (0,0,-0.015) m
+    to tcp at grasp, held constant while rigidly carried, is (0,0,-0.035) m
 
 Both the gripper and the box are downstream of ALL SIX arm joints (rigidly
 attached past link 6), so each contributes to every joint's torque sum, not
@@ -27,7 +29,7 @@ import gripper_fk as gf
 G = np.array([0.0, 0.0, -9.81])
 GRIPPER_MASS = 0.920864                 # from gripper_links.TOTAL_MASS
 BOX_MASS = 0.1                          # pick_place.sdf
-BOX_OFFSET_FROM_TCP = np.array([0.0, 0.0, -0.015])
+BOX_OFFSET_FROM_TCP = np.array([0.0, 0.0, -0.035])   # corrected 2026-09-29: real grasp is z=0.06 (exp2_xyz), not z=0.04 (Exp 1s separate segment); 0.025 - 0.06 = -0.035
 TCP_OFFSET_FROM_TOOL0 = np.array([0.0, 0.0, 0.112])   # local Z of tool0
 
 
