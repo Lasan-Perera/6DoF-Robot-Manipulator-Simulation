@@ -12,3 +12,6 @@ __pycache__/
 *.swp
 .DS_Store
 src/gp7_pick_place/gp7_pick_place/vla/vla_venv/
+
+# raw camera dump from vla/capture_frame.py (frame.png is the committed copy)
+src/gp7_pick_place/gp7_pick_place/vla/frame.ppm
