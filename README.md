@@ -25,10 +25,12 @@ natural-language description of each object, not hardcoded coordinates. See
 ├── report/                       D-H table, FK/IK derivations, writeup
 │   └── images/
 │       ├── dh-frames.jpg         hand-drawn coordinate frame assignment
-│       └── datasheet_image.jpg   Yaskawa dimensional drawing, used to sanity-check link lengths
+│       ├── datasheet_image.jpg   Yaskawa dimensional drawing, used to sanity-check link lengths
+│       └── workspace_plot.png    reachable-workspace point cloud (see Workspace analysis)
 ├── media/
 │   ├── pick_and_place_demo.mp4   screen-recorded simulation video
-│   └── vla_sequence_demo.mp4     screen-recorded VLA sequence video
+│   ├── pick_and_place_demo.gif   same recording as a GIF (embedded above)
+│   └── vla_sequence_demo.gif     screen-recorded VLA sequence (embedded above)
 └── src/
     ├── gp7_description/          URDF/xacro, meshes, worlds, ros2_control + Gazebo bring-up
     └── gp7_pick_place/           FK/IK, trajectory planning, velocity control, mission node
