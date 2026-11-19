@@ -50,7 +50,7 @@
 
     <!-- Box B: 5x5x5 cm. Free rigid body — must be graspable and stay upright. -->
     <model name="box_b">
-      <pose>0.55 -0.25 0.025 0 0 0</pose>
+      <pose>-0.28 -0.55 0.025 0 0 0</pose>
       <link name="link">
         <inertial>
           <mass>0.1</mass>
@@ -61,6 +61,10 @@
         </inertial>
         <collision name="collision">
           <geometry><box><size>0.05 0.05 0.05</size></box></geometry>
+          <!-- cube friction. bullet-featherstone reads the <bullet> value (default 1.0); <ode> is for other engines -->
+          <surface>
+            <friction><ode><mu>1.5</mu><mu2>1.5</mu2></ode><bullet><friction>1.5</friction><friction2>1.5</friction2></bullet></friction>
+          </surface>
         </collision>
         <visual name="visual">
           <geometry><box><size>0.05 0.05 0.05</size></box></geometry>

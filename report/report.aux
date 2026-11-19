@@ -1,0 +1,86 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{rosi}
+\citation{gp7spec}
+\citation{robotiq}
+\@writefile{toc}{\contentsline {section}{\numberline {1}System overview}{1}{section.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Software pipeline. Blue: our code. Orange: ROS~2 / \texttt  {ros2\_control} / Gazebo.}}{1}{figure.caption.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:pipeline}{{1}{1}{Software pipeline. Blue: our code. Orange: ROS~2 / \texttt {ros2\_control} / Gazebo}{figure.caption.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Simulation setup in Gazebo}{1}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Robot model.}{1}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Physics and control.}{1}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Environment.}{1}{section*.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Simulation environment.}}{1}{table.caption.5}\protected@file@percent }
+\newlabel{tab:world}{{1}{1}{Simulation environment}{table.caption.5}{}}
+\citation{dasilva}
+\citation{gp7spec}
+\citation{gp7spec}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Coordinate frame assignment. In (b), triads whose origins coincide or nearly coincide are drawn offset and joined to their origin by a dotted line. At \(q=0\) the D-H rules give \(x_0 \parallel x_1\) (world \(+X\)) and \(x_6 \parallel x_5\) (world \(+Z\), since \(\alpha _6=0\)). Panel (b) is computed directly from the D-H matrices and is authoritative where the sketch differs.}}{2}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:frames}{{2}{2}{Coordinate frame assignment. In (b), triads whose origins coincide or nearly coincide are drawn offset and joined to their origin by a dotted line. At \(q=0\) the D-H rules give \(x_0 \parallel x_1\) (world \(+X\)) and \(x_6 \parallel x_5\) (world \(+Z\), since \(\alpha _6=0\)). Panel (b) is computed directly from the D-H matrices and is authoritative where the sketch differs}{figure.caption.7}{}}
+\@writefile{toc}{\contentsline {paragraph}{Why Box~A is not at \((1,1,0)\).}{2}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Coordinate frames and D-H parameters}{2}{section.3}\protected@file@percent }
+\newlabel{eq:dh}{{1}{2}{Coordinate frames and D-H parameters}{equation.3.1}{}}
+\@writefile{toc}{\contentsline {paragraph}{Joint-angle conventions.}{2}{section*.9}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces D-H parameters of the GP7. \(q_i\) are the physical joint angles used by the controllers. Their zero and positive direction come from the URDF.}}{3}{table.caption.8}\protected@file@percent }
+\newlabel{tab:dh}{{2}{3}{D-H parameters of the GP7. \(q_i\) are the physical joint angles used by the controllers. Their zero and positive direction come from the URDF}{table.caption.8}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Joint ranges and maximum speeds from the GP7 specification~\cite  {gp7spec}.}}{3}{table.caption.10}\protected@file@percent }
+\newlabel{tab:limits}{{3}{3}{Joint ranges and maximum speeds from the GP7 specification~\cite {gp7spec}}{table.caption.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}Forward kinematics}{3}{section.4}\protected@file@percent }
+\newlabel{eq:fkpos}{{2}{3}{Forward kinematics}{equation.4.2}{}}
+\newlabel{eq:r36}{{3}{3}{Forward kinematics}{equation.4.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{Verification.}{3}{section*.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Inverse kinematics}{3}{section.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Forward kinematics compared with the simulator.}}{4}{table.caption.12}\protected@file@percent }
+\newlabel{tab:fkcheck}{{4}{4}{Forward kinematics compared with the simulator}{table.caption.12}{}}
+\@writefile{toc}{\contentsline {paragraph}{Step 1: wrist centre.}{4}{section*.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Step 2: position joints \(q_1, q_2, q_3\).}{4}{section*.14}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Arm plane for \(q_2, q_3\) (elbow-up branch, drawn to scale). The elbow reaches the wrist centre through the offset \(a_3\) and the forearm \(d_4\), so the straight elbow-to-wrist line \(\ell \) is inclined by \(\phi \) to the forearm.}}{4}{figure.caption.15}\protected@file@percent }
+\newlabel{fig:ikplane}{{3}{4}{Arm plane for \(q_2, q_3\) (elbow-up branch, drawn to scale). The elbow reaches the wrist centre through the offset \(a_3\) and the forearm \(d_4\), so the straight elbow-to-wrist line \(\ell \) is inclined by \(\phi \) to the forearm}{figure.caption.15}{}}
+\@writefile{toc}{\contentsline {paragraph}{Step 3: wrist joints \(q_4, q_5, q_6\).}{4}{section*.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Multiple solutions and selection.}{5}{section*.17}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces IK branches (degrees) for the pose \(\mathrm  {FK}(0.3, 0.2, -0.1, 0.4, 0.15, 0.2)\).}}{5}{table.caption.18}\protected@file@percent }
+\newlabel{tab:branches}{{5}{5}{IK branches (degrees) for the pose \(\mathrm {FK}(0.3, 0.2, -0.1, 0.4, 0.15, 0.2)\)}{table.caption.18}{}}
+\@writefile{toc}{\contentsline {paragraph}{Verification.}{5}{section*.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Code: inverse kinematics}{5}{section*.20}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{../src/gp7_pick_place/gp7_pick_place/kinematics.py}{5}{lstlisting.-1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{../src/gp7_pick_place/gp7_pick_place/kinematics.py}{6}{lstlisting.-2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{../src/gp7_pick_place/gp7_pick_place/kinematics.py}{6}{lstlisting.-3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Trajectory planning}{6}{section.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Waypoints}{6}{subsection.6.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Mission waypoints and their IK solutions (degrees). All are within the joint limits. The arm first moves from home (\(q=0\)) to waypoint 1.}}{7}{table.caption.21}\protected@file@percent }
+\newlabel{tab:waypoints}{{6}{7}{Mission waypoints and their IK solutions (degrees). All are within the joint limits. The arm first moves from home (\(q=0\)) to waypoint 1}{table.caption.21}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Keeping Box B upright}{7}{subsection.6.2}\protected@file@percent }
+\newlabel{sec:upright}{{6.2}{7}{Keeping Box B upright}{subsection.6.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}LSPB velocity profile}{7}{subsection.6.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces TCP height and gripper orientation error with respect to \(\mathbf  R_\text  {down}\) over the whole mission, computed by FK on the commanded samples. Shaded: Box~B is in the gripper.}}{8}{figure.caption.22}\protected@file@percent }
+\newlabel{fig:orient}{{4}{8}{TCP height and gripper orientation error with respect to \(\mathbf R_\text {down}\) over the whole mission, computed by FK on the commanded samples. Shaded: Box~B is in the gripper}{figure.caption.22}{}}
+\@writefile{toc}{\contentsline {paragraph}{Code: trajectory planning}{8}{section*.24}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{../src/gp7_pick_place/gp7_pick_place/trajectory.py}{8}{lstlisting.-4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Synchronised LSPB for the transit segment (waypoint 3\,\(\to \)\,4, Box~B held). Joints 1 and 6 (both \(69.44^\circ \)) pace the motion. The others scale down so that all finish at \(t_f\). Dots: the 20\,Hz samples sent to the controller. \(q_4\) does not move.}}{9}{figure.caption.23}\protected@file@percent }
+\newlabel{fig:lspb}{{5}{9}{Synchronised LSPB for the transit segment (waypoint 3\,\(\to \)\,4, Box~B held). Joints 1 and 6 (both \(69.44^\circ \)) pace the motion. The others scale down so that all finish at \(t_f\). Dots: the 20\,Hz samples sent to the controller. \(q_4\) does not move}{figure.caption.23}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Velocity control}{9}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Velocity limits.}{9}{section*.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Execution.}{10}{section*.26}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Velocity kinematics.}{10}{section*.27}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Code: velocity control and execution}{10}{section*.28}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{../src/gp7_pick_place/gp7_pick_place/run\textunderscore pick\textunderscore place.py}{10}{lstlisting.-5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{../src/gp7_pick_place/gp7_pick_place/run\textunderscore pick\textunderscore place.py}{10}{lstlisting.-6}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{../src/gp7_pick_place/gp7_pick_place/run\textunderscore pick\textunderscore place.py}{11}{lstlisting.-7}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{../src/gp7\textunderscore description/config/controllers.yaml}{11}{lstlisting.-8}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {8}Results}{12}{section.8}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Frames from the screen-recorded Gazebo run.}}{12}{figure.caption.29}\protected@file@percent }
+\newlabel{fig:snaps}{{6}{12}{Frames from the screen-recorded Gazebo run}{figure.caption.29}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Trajectory segments of the mission. Path deviation: largest distance of the TCP from the straight line joining the segment's end points.}}{12}{table.caption.30}\protected@file@percent }
+\newlabel{tab:segments}{{7}{12}{Trajectory segments of the mission. Path deviation: largest distance of the TCP from the straight line joining the segment's end points}{table.caption.30}{}}
+\bibcite{spong}{1}
+\bibcite{gp7spec}{2}
+\bibcite{rosi}{3}
+\bibcite{robotiq}{4}
+\bibcite{dasilva}{5}
+\bibcite{ros2}{6}
+\bibcite{gazebo}{7}
+\@writefile{toc}{\contentsline {paragraph}{Discussion and limitations.}{13}{section*.31}\protected@file@percent }
+\gdef \@abspage@last{13}

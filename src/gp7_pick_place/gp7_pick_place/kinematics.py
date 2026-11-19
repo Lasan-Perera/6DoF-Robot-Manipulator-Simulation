@@ -165,11 +165,58 @@ def inverse_kinematics_tcp_continuous(target_pose_tcp: np.ndarray,
                                        previous_solution: list[float] | None = None,
                                        period: float = 2 * np.pi) -> list[float]:   
     # This function computes the inverse kinematics for the GP7 robot arm, given a target pose in the TCP (Tool Center Point) frame. It also allows for continuous tracking of joint angles by considering a previous solution and ensuring that the new solution is within a specified period (default is 2π radians). This helps to avoid sudden jumps in joint angles when the robot is moving continuously.
+    from itertools import product
     q = np.array(inverse_kinematics_tcp(target_pose_tcp)[0])
     if previous_solution is not None:
         prev = np.array(previous_solution)
-        q = prev + (q - prev + period / 2) % period - period / 2
+        # each joint may be shifted by +/-2*pi if it stays inside its limits (so q1, limited to
+        # +/-170 deg, never leaves its range; only q4/q6 have more than 360 deg of travel)
+        options = [[v + n * period for n in (-1, 0, 1) if lo <= v + n * period <= hi] or [v]
+                   for v, (lo, hi) in zip(q, np.radians(JOINT_LIMITS_DEG))]
+        # of all combinations, keep the one whose straight joint-space move (= the synchronised
+        # LSPB path) keeps the tool orientation on the direct rotation -- this stops the gripper
+        # spinning 360 deg about the vertical -- and then the one with the least joint motion
+        R_prev = forward_kinematics(prev)[:3, :3]
+        q = min((np.array(c) for c in product(*options)),
+                key=lambda c: (round(_path_orientation_deviation(prev, c, R_prev, target_pose_tcp[:3, :3]), 4),
+                               np.abs(c - prev).sum()))
     return list(q)
+
+
+def _rotation_exp(w):
+    """Rotation matrix for rotation vector w (Rodrigues)."""
+    th = np.linalg.norm(w)
+    if th < 1e-12:
+        return np.eye(3)
+    k = w / th
+    K = np.array([[0, -k[2], k[1]], [k[2], 0, -k[0]], [-k[1], k[0], 0]])
+    return np.eye(3) + np.sin(th) * K + (1 - np.cos(th)) * K @ K
+
+
+def _rotation_log(R):
+    """Rotation vector of rotation matrix R (inverse of _rotation_exp)."""
+    th = np.arccos(np.clip((np.trace(R) - 1) / 2, -1.0, 1.0))
+    if th < 1e-9:
+        return np.zeros(3)
+    if np.pi - th < 1e-6:  # 180 deg: take the axis from the symmetric part
+        A = (R + np.eye(3)) / 2
+        i = int(np.argmax(np.diag(A)))
+        k = A[:, i] / np.sqrt(A[i, i])
+        return th * k / np.linalg.norm(k)
+    return th / (2 * np.sin(th)) * np.array([R[2, 1] - R[1, 2], R[0, 2] - R[2, 0], R[1, 0] - R[0, 1]])
+
+
+def _path_orientation_deviation(q_from, q_to, R_from, R_to, fractions=(0.25, 0.5, 0.75)):
+    """Largest angle (rad) between the tool orientation on the straight joint-space path
+    q_from -> q_to and the direct rotation R_from -> R_to. A wrist that spins 360 deg on
+    the way shows up here as ~180 deg at the midpoint; a well-chosen unwrap gives ~0."""
+    w = _rotation_log(R_from.T @ R_to)
+    dev = 0.0
+    for s in fractions:
+        R_path = forward_kinematics(q_from + s * (q_to - q_from))[:3, :3]
+        R_direct = R_from @ _rotation_exp(s * w)
+        dev = max(dev, np.arccos(np.clip((np.trace(R_direct.T @ R_path) - 1) / 2, -1.0, 1.0)))
+    return dev
 
 def solve_position_joints_elbow_variants(wc):
     """
