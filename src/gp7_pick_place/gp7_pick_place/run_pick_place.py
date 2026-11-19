@@ -12,18 +12,18 @@ import trajectory as traj
 ARM_JOINTS = ['joint_1_s', 'joint_2_l', 'joint_3_u', 'joint_4_r', 'joint_5_b', 'joint_6_t']
 GRIPPER_JOINT = ['robotiq_85_left_knuckle_joint']
 
-V_MAX = 0.5
+V_MAX = 0.2
 ACCEL = 1.0
 
 WAYPOINTS_XYZ = [
-    [0.55, -0.25, 0.30],
-    [0.55, -0.25, 0.05],
-    [0.55, -0.25, 0.30],
+    [-0.28, -0.55, 0.30],
+    [-0.28, -0.55, 0.05],
+    [-0.28, -0.55, 0.30],
     [0.50,  0.50, 0.30],
-    [0.50,  0.50, 0.325],
-    [0.50,  0.50, 0.330],
+    [0.50,  0.50, 0.35],
+    [0.50,  0.50, 0.40],
 ]
-GRIPPER_ACTIONS = {1: 0.75, 4: 0.0}  # after arriving at waypoint index: close(1) / open(0)
+GRIPPER_ACTIONS = {1: 0.75, 4: 0.0}  # after arriving close 1 open 0
 
 
 def solve_waypoints():
@@ -33,6 +33,8 @@ def solve_waypoints():
     for xyz in WAYPOINTS_XYZ:
         T = np.eye(4); T[:3, :3] = R_fixed; T[:3, 3] = xyz
         q = kin.inverse_kinematics_tcp_continuous(T, previous_solution=prev)
+        if not kin.within_limits(q):
+            raise RuntimeError(f'waypoint {xyz}: IK {np.round(np.rad2deg(q), 1)} deg is outside the joint limits')
         solutions.append(q)
         prev = q
     return solutions

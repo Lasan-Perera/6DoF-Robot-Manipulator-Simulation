@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GP7 Live Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-title">GP7 Live Dashboard</div>
+    <div class="brand-sub">Yaskawa GP7 + Robotiq 2F-85 · pick-and-place · ROS 2 Jazzy / Gazebo</div>
+  </div>
+  <div class="pills">
+    <span class="pill" id="pill-link"><span class="dot"></span><span id="link-text">Connecting…</span></span>
+    <span class="pill"><span class="pill-k">Sim time</span><span class="mono" id="sim-time">–</span></span>
+    <span class="pill"><span class="pill-k">/joint_states</span><span class="mono" id="js-rate">–</span></span>
+    <span class="pill"><span class="pill-k">Mission</span><span class="mono" id="mission-elapsed">–</span></span>
+    <button class="btn" id="btn-pause" title="Freeze the charts and views">Pause</button>
+    <button class="btn" id="btn-csv" title="Download everything recorded since the page opened">Download CSV</button>
+    <button class="btn" id="btn-clear" title="Clear trail and recorded history">Clear</button>
+    <button class="btn icon" id="btn-theme" title="Toggle light / dark">◐</button>
+  </div>
+</header>
+
+<main class="grid">
+  <!-- Mission strip -->
+  <section class="card span-12 mission">
+    <div class="mission-head">
+      <div>
+        <div class="eyebrow">Mission phase</div>
+        <div class="phase" id="phase">Waiting for the simulation…</div>
+      </div>
+      <div class="mission-meta">
+        <div><span class="k">Arm goal</span> <span id="arm-goal" class="mono">–</span></div>
+        <div><span class="k">Gripper goal</span> <span id="grip-goal" class="mono">–</span></div>
+        <div><span class="k">Planned arm time</span> <span id="planned-total" class="mono">–</span></div>
+      </div>
+    </div>
+    <ol class="stepper" id="stepper"></ol>
+  </section>
+
+  <!-- Joints -->
+  <section class="card span-7">
+    <div class="card-head"><h2>Joints</h2><span class="hint">angle within its limits · velocity against V<sub>max</sub> · controller reference &amp; tracking error</span></div>
+    <div class="table-wrap">
+    <table class="joints" id="joint-table">
+      <thead><tr>
+        <th>Joint</th><th class="num">Angle (°)</th><th class="bar-col">Range</th>
+        <th class="num">Vel (°/s)</th><th class="bar-col">Vel</th>
+        <th class="num">Ref (°)</th><th class="num">Err (°)</th><th class="num">Effort</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+    </div>
+  </section>
+
+  <!-- End effector -->
+  <section class="card span-5">
+    <div class="card-head"><h2>End effector (TCP)</h2><span class="hint" id="tcp-source">–</span></div>
+    <div class="xyz">
+      <div><div class="k">X</div><div class="big mono" id="tcp-x">–</div></div>
+      <div><div class="k">Y</div><div class="big mono" id="tcp-y">–</div></div>
+      <div><div class="k">Z</div><div class="big mono" id="tcp-z">–</div></div>
+    </div>
+    <div class="unit-note">metres, in <span class="mono">base_link</span></div>
+    <dl class="kv" id="ee-kv"></dl>
+  </section>
+
+  <!-- 3D view -->
+  <section class="card span-7">
+    <div class="card-head"><h2>3D view</h2><span class="hint">drag to rotate · scroll to zoom · double-click to reset</span></div>
+    <div class="legend-row" id="legend-3d"></div>
+    <canvas id="view3d" class="view tall"></canvas>
+  </section>
+
+  <!-- 2D views -->
+  <section class="card span-5 stack">
+    <div>
+      <div class="card-head"><h2>Top view (X–Y)</h2><span class="hint">dashed ring = max wrist-centre reach</span></div>
+      <canvas id="viewTop" class="view"></canvas>
+    </div>
+    <div>
+      <div class="card-head"><h2>Side view (Y–Z)</h2><span class="hint">seen from +X</span></div>
+      <canvas id="viewSide" class="view short"></canvas>
+    </div>
+  </section>
+
+  <!-- Charts -->
+  <section class="card span-6">
+    <div class="card-head"><h2>Joint angles (°)</h2><span class="hint">last <span class="win-s">30</span> s · click a legend entry to hide it</span></div>
+    <div class="legend-row series-legend" data-chart="angles"></div>
+    <div class="chart-wrap"><canvas id="chartAngles" class="chart"></canvas><div class="tooltip" id="tip-angles"></div></div>
+  </section>
+  <section class="card span-6">
+    <div class="card-head"><h2>Joint velocities (°/s)</h2><span class="hint">dashed = ±V<sub>max</sub></span></div>
+    <div class="legend-row series-legend" data-chart="vels"></div>
+    <div class="chart-wrap"><canvas id="chartVels" class="chart"></canvas><div class="tooltip" id="tip-vels"></div></div>
+  </section>
+
+  <!-- Gripper / scene / health -->
+  <section class="card span-4">
+    <div class="card-head"><h2>Gripper</h2><span class="hint">Robotiq 2F-85 · <span class="mono">robotiq_85_left_knuckle_joint</span></span></div>
+    <div class="status-line" id="grip-status">–</div>
+    <div class="meter"><div class="meter-fill" id="grip-meter"></div><div class="meter-ref" id="grip-ref-mark"></div></div>
+    <div class="meter-scale"><span>open 0</span><span>closed ≈ 0.8 rad</span></div>
+    <dl class="kv" id="grip-kv"></dl>
+    <div class="chart-wrap small"><canvas id="chartGrip" class="chart small"></canvas><div class="tooltip" id="tip-grip"></div></div>
+  </section>
+
+  <section class="card span-4">
+    <div class="card-head"><h2>Boxes</h2><span class="hint" id="box-source">–</span></div>
+    <div class="status-line" id="box-status">–</div>
+    <dl class="kv" id="box-kv"></dl>
+  </section>
+
+  <section class="card span-4">
+    <div class="card-head"><h2>Jacobian &amp; system</h2><span class="hint">geometric Jacobian from our D-H model</span></div>
+    <div class="status-line" id="jac-status">–</div>
+    <div class="sv" id="sv-bars"></div>
+    <dl class="kv" id="sys-kv"></dl>
+    <div class="ctrl-list" id="ctrl-list"></div>
+  </section>
+
+  <!-- Set coordinates -->
+  <section class="card span-12">
+    <div class="card-head"><h2>Set coordinates: waypoints and IK solutions</h2><span class="hint">from <span class="mono">run_pick_place.py</span> · target orientation: gripper pointing straight down</span></div>
+    <div class="table-wrap">
+    <table class="data" id="wp-table">
+      <thead><tr>
+        <th>#</th><th>Waypoint</th><th class="num">X (m)</th><th class="num">Y (m)</th><th class="num">Z (m)</th>
+        <th class="num">q1</th><th class="num">q2</th><th class="num">q3</th><th class="num">q4</th><th class="num">q5</th><th class="num">q6</th>
+        <th>Gripper after</th><th class="num">Live dist (mm)</th><th class="num">Reached at (s)</th><th>Status</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+    </div>
+    <div class="foot-note">IK angles in degrees (closed-form, continuity-unwrapped). "Live dist" = distance from the current TCP to the waypoint.</div>
+  </section>
+
+  <section class="card span-6">
+    <div class="card-head"><h2>Trajectory segments</h2><span class="hint">synchronised LSPB, planned vs measured</span></div>
+    <div class="table-wrap">
+    <table class="data" id="seg-table">
+      <thead><tr><th>Segment</th><th class="num">Planned (s)</th><th class="num">Measured (s)</th><th class="num">Pacing joint</th><th class="num">Max Δq (°)</th><th>Then</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    </div>
+  </section>
+
+  <section class="card span-6">
+    <div class="card-head"><h2>Parameters</h2><span class="hint">values the code is using</span></div>
+    <div class="params">
+      <dl class="kv" id="param-kv"></dl>
+      <table class="data compact" id="dh-table">
+        <thead><tr><th>i</th><th class="num">a (m)</th><th class="num">α (°)</th><th class="num">d (m)</th><th>θ</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">Data: <span class="mono">/joint_states</span>, TF <span class="mono">base_link→tcp</span>, <span class="mono">/arm_controller/controller_state</span>, action status, <span class="mono">/controller_manager/list_controllers</span>, Gazebo <span class="mono">dynamic_pose/info</span>. FK, orientation and Jacobian are computed with this repo's <span class="mono">kinematics.py</span> / <span class="mono">jacobian.py</span>.</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+GP7 PICK-AND-PLACE  -  EVALUATION COMMAND SHEET  (EN3563 mini project)
+=========================================================================
+Repo: ~/6DoF-Robot-Manipulator-Simulation        Pkg scripts: src/gp7_pick_place/gp7_pick_place/
+Every command here was checked on this machine.
+
+!! TWO RULES THAT AVOID MOST PROBLEMS !!
+  (a) In every NEW terminal, first:
+        cd ~/6DoF-Robot-Manipulator-Simulation && source install/setup.bash
+  (b) Run our Python scripts with  /usr/bin/python3  (NOT plain python3).
+      Conda's base env auto-activates in your shell; its Python 3.14 cannot load ROS 2.
+      Same reason: start rqt_graph as  rqt_graph,  not  ros2 run rqt_graph rqt_graph.
+      (Alternative: run  conda deactivate  once in that terminal.)
+
+Abbreviation used below:   P = ~/6DoF-Robot-Manipulator-Simulation/src/gp7_pick_place/gp7_pick_place
+
+
+#########################################################################
+1. RUN THE DEMO
+#########################################################################
+ONE COMMAND (recommended):
+    cd ~/6DoF-Robot-Manipulator-Simulation
+    ./demo.sh
+  -> Gazebo + controllers -> dashboard opens at http://localhost:8080 -> press Enter = pick-and-place.
+  -> After a run, press Enter again = reset (arm home, gripper open, Box B back) and run again.
+  -> Ctrl+C stops everything.   Logs: log/demo/
+    ./demo.sh --auto          start the mission immediately
+    ./demo.sh --build         colcon build first (after editing code / world / URDF)
+    ./demo.sh --headless      no Gazebo window
+    ./demo.sh --no-dashboard  no web dashboard
+  "Gazebo is already running" -> answer y to stop it, or:  pkill -f "gz sim"
+  Always stop with Ctrl+C in the demo terminal (closing the Gazebo window leaves a server behind).
+
+BY HAND (if asked to show the separate steps):
+  T1:  ros2 launch gp7_description gazebo.launch.py
+  T2:  cd $P  ->  cd ~/6DoF-Robot-Manipulator-Simulation/src/gp7_pick_place/gp7_pick_place
+       /usr/bin/python3 run_pick_place.py
+  T3:  (same folder)  /usr/bin/python3 dashboard.py        -> http://localhost:8080
+  Re-run by hand = restart Gazebo (Ctrl+C T1, launch again), then run_pick_place.py again.
+
+BUILD:
+    cd ~/6DoF-Robot-Manipulator-Simulation
+    colcon build --symlink-install && source install/setup.bash
+    (clean rebuild:  rm -rf build install log && colcon build --symlink-install)
+
+
+#########################################################################
+2. SHOW THE MODEL / FRAMES / GRAPHS
+#########################################################################
+Robot model in RViz with joint sliders (no physics; move each joint, watch the frames):
+    ros2 launch gp7_description display.launch.py
+
+Node/topic graph (while the demo runs; press refresh after the mission starts):
+    rqt_graph
+    -> dropdown "Nodes/Topics (all)", untick "Dead sinks" & "Leaf topics"; save icon = export PNG/SVG
+
+TF tree as a PDF (writes frames_<date>.pdf + .gv in the current folder):
+    ros2 run tf2_tools view_frames
+
+Live plots of any topic field (Gazebo running):
+    ros2 run rqt_plot rqt_plot /joint_states/position[0] /joint_states/position[1] /joint_states/position[2]
+    ros2 run rqt_plot rqt_plot /joint_states/velocity[0] /joint_states/velocity[1]
+    (the order of names in /joint_states can differ: check with  ros2 topic echo --once /joint_states)
+
+All rqt tools in one window (Plugins menu: Topic Monitor, Plot, Console, Node Graph...):
+    rqt
+
+URDF checks:
+    xacro src/gp7_description/urdf/gp7.urdf.xacro > /tmp/gp7.urdf
+    check_urdf /tmp/gp7.urdf                     # prints the link/joint tree
+    urdf_to_graphviz /tmp/gp7.urdf gp7           # writes gp7.pdf (kinematic tree diagram)
+    grep -A3 "<limit" /tmp/gp7.urdf | head -40   # joint limits as Gazebo uses them
+
+
+#########################################################################
+3. LIVE INSPECTION (Gazebo running)
+#########################################################################
+Controllers (ros2_control):
+    ros2 control list_controllers                # arm_controller, gripper_controller, joint_state_broadcaster -> active
+    ros2 control list_hardware_interfaces        # position command / position+velocity state per joint
+    ros2 control list_controller_types
+    ros2 param get /controller_manager update_rate     # 1000 Hz
+
+Nodes / topics:
+    ros2 node list
+    ros2 node info /robot_state_publisher
+    ros2 topic list
+    ros2 topic echo /joint_states                # live joint positions & velocities
+    ros2 topic echo --once /joint_states
+    ros2 topic hz /joint_states                  # publish rate
+    ros2 topic info -v /joint_states             # who publishes / subscribes
+    ros2 topic echo /arm_controller/controller_state     # reference vs feedback vs error, per joint
+    ros2 interface show sensor_msgs/msg/JointState
+    ros2 interface show control_msgs/action/FollowJointTrajectory
+
+Actions (how run_pick_place.py commands the robot):
+    ros2 action list -t
+    ros2 action info /arm_controller/follow_joint_trajectory
+
+TF (actual poses from robot_state_publisher):
+    ros2 run tf2_ros tf2_echo base_link tcp      # gripper grasp point (compare with our FK)
+    ros2 run tf2_ros tf2_echo base_link tool0    # flange
+    ros2 run tf2_ros tf2_echo base_link link_6_t
+
+Gazebo side:
+    gz topic -l
+    gz model --list
+    gz model -m box_b -p                         # Box B pose straight from the physics engine
+    gz model -m gp7 -p
+
+Live joint-velocity readout in the terminal (shows the LSPB ramp up / cruise / ramp down):
+    cd ~/6DoF-Robot-Manipulator-Simulation/src/gp7_pick_place/gp7_pick_place && /usr/bin/python3 watch_velocities.py
+
+
+#########################################################################
+4. MOVE THE ROBOT BY HAND (Gazebo running, mission NOT running)
+#########################################################################
+Move the arm to a joint configuration (radians) over 3 s - quick, via the controller topic:
+    ros2 topic pub --once /arm_controller/joint_trajectory trajectory_msgs/msg/JointTrajectory \
+    "{joint_names: [joint_1_s, joint_2_l, joint_3_u, joint_4_r, joint_5_b, joint_6_t], points: [{positions: [0.5, 0.3, -0.2, 0.0, 0.8, 0.0], time_from_start: {sec: 3}}]}"
+  then compare:  ros2 run tf2_ros tf2_echo base_link tcp   with FK of the same angles (section 5)
+
+Same through the ACTION (prints accepted / result, like our script does):
+    ros2 action send_goal --feedback /arm_controller/follow_joint_trajectory control_msgs/action/FollowJointTrajectory \
+    "{trajectory: {joint_names: [joint_1_s, joint_2_l, joint_3_u, joint_4_r, joint_5_b, joint_6_t], points: [{positions: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time_from_start: {sec: 4}}]}}"
+
+Home (all zero):  same as above with positions [0,0,0,0,0,0]
+
+Gripper close / open (knuckle angle, rad: 0 = open, ~0.8 = fully closed):
+    ros2 topic pub --once /gripper_controller/joint_trajectory trajectory_msgs/msg/JointTrajectory \
+    "{joint_names: [robotiq_85_left_knuckle_joint], points: [{positions: [0.75], time_from_start: {sec: 1}}]}"
+    (open: positions [0.0])
+
+Put Box B back to its start pose:
+    gz service -s /world/pick_place_world/set_pose --reqtype gz.msgs.Pose --reptype gz.msgs.Boolean --timeout 2000 \
+    --req 'name: "box_b", position: {x: 0.55, y: -0.25, z: 0.025}, orientation: {w: 1}'
+
+Cartesian jogging through our IK (w/s = x, a/d = y, q/e = z, [ ] = step size, r = reset):
+    cd $P  ->  /usr/bin/python3 teleop.py
+All IK branches for one target, shown live (tool tip stays fixed, arm reconfigures):
+    cd $P  ->  /usr/bin/python3 demo_branches.py
+
+
+#########################################################################
+5. THE MATHS, LIVE IN THE TERMINAL (no Gazebo needed)
+#########################################################################
+Run from:  cd ~/6DoF-Robot-Manipulator-Simulation/src/gp7_pick_place/gp7_pick_place
+
+FK for any joint angles (degrees) -> T06 and the TCP position:
+    /usr/bin/python3 -c "
+    import numpy as np, kinematics as k
+    q = np.radians([30, 10, -20, 0, 45, 0])
+    T = k.forward_kinematics(q); np.set_printoptions(precision=4, suppress=True)
+    print(T); print('TCP', T[:3,3] + k.L_TCP*T[:3,2])
+    "
+
+IK for a target (gripper pointing down) -> every branch + joint-limit check:
+    /usr/bin/python3 -c "
+    import numpy as np, kinematics as k
+    T = np.eye(4); T[:3,:3] = np.diag([1.,-1,-1]); T[:3,3] = [0.55, -0.25, 0.05]
+    for q in k.inverse_kinematics_tcp_all_branches(T):
+        print(np.round(np.degrees(q),2), 'within limits' if k.within_limits(q) else 'OUT OF LIMITS')
+    "
+
+IK -> FK round trip (proves the IK is right; error should be ~0 mm):
+    /usr/bin/python3 -c "
+    import numpy as np, kinematics as k
+    T = np.eye(4); T[:3,:3] = np.diag([1.,-1,-1]); T[:3,3] = [0.55, -0.25, 0.05]
+    q = k.inverse_kinematics_tcp(T)[0]; F = k.forward_kinematics(q)
+    print('q (deg)', np.round(np.degrees(q),2)); print('error mm', np.linalg.norm(F[:3,3]+k.L_TCP*F[:3,2]-T[:3,3])*1000)
+    "
+
+Reachability of all mission waypoints (every line must say OK):
+    /usr/bin/python3 -c "
+    import numpy as np, kinematics as k, run_pick_place as r
+    for xyz, q in zip(r.WAYPOINTS_XYZ, r.solve_waypoints()):
+        T = k.forward_kinematics(q); tcp = T[:3,3] + k.L_TCP*T[:3,2]
+        err = np.linalg.norm(tcp - xyz)*1000
+        print(xyz, 'err %.2f mm' % err, 'OK' if err < 1 and k.within_limits(q) else '<-- NOT REACHABLE')
+    "
+
+Jacobian / manipulability at every waypoint (w = 0 means singular):
+    /usr/bin/python3 -c "
+    import numpy as np, singularity as s, run_pick_place as r
+    for xyz, q in zip(r.WAYPOINTS_XYZ, r.solve_waypoints()):
+        print(xyz, 'w = %.3f' % s.manipulability(q), 'q(deg) =', np.round(np.degrees(q),1))
+    print('home w =', s.manipulability([0]*6), '(wrist singular: q5 = 0)')
+    "
+
+Jacobian checked against finite differences of FK (prints both columns side by side):
+    /usr/bin/python3 -c "import numpy as np, jacobian as j; j.check_jacobian_numerically(np.radians([30,20,-10,40,50,20]))"
+
+LSPB timing for a joint move (returns tb, tf in seconds; V_MAX 0.5 rad/s, ACCEL 1.0 rad/s^2):
+    /usr/bin/python3 -c "import numpy as np, trajectory as t; print(t.segment_timing(np.radians(180), 0.5, 1.0))"
+    -> (0.5, 6.78): trapezoid.  Small moves (< 0.25 rad) give a triangle: tb = sqrt(dq/a), tf = 2 tb.
+
+
+#########################################################################
+6. IF SIR ASKS TO CHANGE SOMETHING
+#########################################################################
+BOX POSITIONS: change BOTH files, same x y, then check reachability (section 5) and restart the demo.
+  src/gp7_description/worlds/pick_place.sdf
+      Box A  <model name="box_a"> <pose>X Y 0.10 0 0 0</pose>    (0.10 = half of 20 cm, keep)
+      Box B  <model name="box_b"> <pose>X Y 0.025 0 0 0</pose>   (0.025 = half of 5 cm, keep)
+  src/gp7_pick_place/gp7_pick_place/run_pick_place.py   WAYPOINTS_XYZ (lines 18-25)
+      rows 1-3 = Box B x,y ; rows 4-6 = Box A x,y ; keep the z values
+  Reach limit: wrist-centre horizontal distance < 0.927 m.  (1,1) is 1.414 m away -> unreachable.
+  Restart needed: Ctrl+C, ./demo.sh  (Gazebo only reads the world file at start).
+
+SPEED:          run_pick_place.py  V_MAX = 0.5 (rad/s, line 15),  ACCEL = 1.0 (rad/s^2, line 16)
+GRIPPER FORCE:  run_pick_place.py  GRIPPER_ACTIONS = {1: 0.75, 4: 0.0}  (close to 0.75 at WP2, open at WP5)
+ORIENTATION:    run_pick_place.py  R_fixed = np.diag([1.0, -1.0, -1.0])  (pointing straight down, yaw 0)
+SAMPLE TIME:    run_pick_place.py  dt = 0.05
+CONTROL RATE:   src/gp7_description/config/controllers.yaml  update_rate: 1000
+Code edits in run_pick_place.py need no rebuild; world/URDF/yaml edits: ./demo.sh --build
+
+
+#########################################################################
+7. RECORD DATA
+#########################################################################
+Dashboard: "Download CSV" button (t, q1-6, qd1-6, TCP xyz, orientation error, gripper, phase).
+ROS bag of a whole run:
+    ros2 bag record -o run1 /joint_states /tf /tf_static /arm_controller/controller_state
+    ros2 bag info run1
+    ros2 bag play run1
+
+
+#########################################################################
+8. KEY NUMBERS / ANSWERS
+#########################################################################
+D-H (a m, alpha deg, d m):  1: 0.040, 90, 0.330 | 2: 0.445, 0, 0 | 3: 0.040, 90, 0
+                            4: 0, 270, 0.440   | 5: 0, 90, 0    | 6: 0, 0, 0.080
+Joint conventions (physical -> D-H theta):  (q1, 90deg - q2, q3, -q4, q5, -q6)
+L_TCP = 0.112 m (flange -> grasp point).  Wrist centre = p - (0.080 + 0.112) * approach axis.
+IK: spherical-wrist decoupling. q1..q3 from the wrist centre (law of cosines, l_eff = 0.4418 m,
+    phi = 5.19 deg); q4..q6 from R36 = R03^T R.  Up to 8 branches (shoulder x elbow x wrist flip).
+Trajectory: synchronised LSPB, V_MAX 0.5 rad/s, ACCEL 1.0 rad/s^2, dt 0.05 s; all joints share
+    one timing law sigma(t), so q(t) = q0 + sigma(t) * dq.
+Upright: with q4 = 180 deg, tool orientation depends only on psi = q2 - q3 + q5 (= 90 deg) and
+    q1 + q6 (= -180 deg) - both constant along every segment -> orientation error ~1e-6 deg.
+q6 = -225 deg (not +135) at Box A: continuity unwrapping, avoids a 360 deg wrist spin.
+Control: JointTrajectoryController at 1 kHz via FollowJointTrajectory ACTION; the controller
+    itself returns "finished" (error_code 0 = SUCCESSFUL); no goal tolerances are configured.
+Physics: bullet-featherstone (DART does not support the 2F-85's mimic joints).
+Friction: gripper xacro lines 197-198 / 233-234 set mu = 1e5, but that URDF form is dropped
+    by Gazebo -> default mu = 1 on fingertips and Box B (enough for the 0.1 kg box).
+URDF source: arm from ros-industrial/motoman (motoman_gp7_support), gripper from robotiq/ros;
+    we added inertials, ros2_control and the Gazebo integration.
+Box B tilts ~2 deg in the grip during transport (gripper itself stays upright).
+NOTE: run_pick_place.py / pick_place.sdf currently have Box A at (0.3, 0.6) (your edit);
+    the report describes (0.5, 0.5). Total planned arm time: 13.95 s at (0.3,0.6), 13.3 s at (0.5,0.5).
+
+
+#########################################################################
+9. TROUBLESHOOTING
+#########################################################################
+"Gazebo is already running"            pkill -f "gz sim"      (then ./demo.sh)
+"package not found" / ros2 not found   source install/setup.bash in THAT terminal
+ImportError / rclpy C extension error   you used conda's python3 -> use /usr/bin/python3
+Script waits for action server          controllers not up yet: ros2 control list_controllers
+Box B slips                             raise the close value in GRIPPER_ACTIONS (max ~0.8)
+Nothing in rqt_graph                    press refresh; same ROS_DOMAIN_ID in both terminals
+Arm in a weird pose before a re-run     use ./demo.sh's Enter-to-reset, or send home (section 4)
+
+
+#########################################################################
+10. REPORT
+#########################################################################
+    cd ~/6DoF-Robot-Manipulator-Simulation/report
+    /usr/bin/python3 scripts/make_figures.py      # only if code or positions changed
+    latexmk -pdf report.tex && latexmk -c         # -> report.pdf
+    Video: https://youtu.be/XFLGYKSj5Rc
+    Code:  https://github.com/Lasan-Perera/6DoF-Robot-Manipulator-Simulation
