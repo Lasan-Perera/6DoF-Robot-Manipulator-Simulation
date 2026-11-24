@@ -16,6 +16,8 @@
 \usetikzlibrary{arrows.meta,positioning,angles,quotes,calc}
 \usepackage{enumitem}
 \usepackage{siunitx}
+\usepackage{placeins}
+\usepackage{needspace}
 \usepackage[hidelinks]{hyperref}
 
 \setlist{itemsep=2pt,topsep=3pt}
@@ -59,6 +61,7 @@
 
 % =========================================================================
 \begin{center}
+  \includegraphics[height=2.4cm]{uom_logo.png}\\[6pt]
   {\LARGE\bfseries EN3563 -- Robotics}\\[4pt]
   {\Large Mini Project: Pick-and-Place with a Yaskawa GP7 in Gazebo}\\[10pt]
   \begin{tabular}{ll}
@@ -147,16 +150,9 @@ Box B (dynamic, 0.1 kg) & \(0.05\times0.05\times0.05\) m & \((0.55, -0.25, 0)\) 
 \end{table}
 
 \paragraph{Why Box~A is not at \((1,1,0)\).}
-The task sheet places Box~A at \((1, 1, 0)\), which is \(\sqrt2 = \SI{1.414}{m}\) from the
-base axis. To place Box~B with the gripper pointing down, the wrist centre must lie
-directly above the placement point, so its horizontal distance from the base axis would be
-\SI{1.414}{m}. The largest horizontal wrist-centre distance the GP7 can reach is
-\(a_1 + a_2 + \sqrt{a_3^2+d_4^2} = 0.040 + 0.445 + 0.442 = \SI{0.927}{m}\), which matches
-Yaskawa's published reach of \SI{927}{mm}. The box at \((1,1)\) is therefore out of reach
-for any IK branch and any gripper. We kept Box~A's dimensions and moved it to
-\((0.5, 0.5, 0)\), keeping the same \(45^\circ\) direction from the base.
-Box~B was placed at \((0.55,-0.25,0)\), a reachable ground position we chose. Its pick
-coordinates are the only scene-dependent inputs of the mission node.
+\((1,1)\) is \SI{1.414}{m} from the base, beyond the GP7's \SI{0.927}{m} reach
+(\(a_1+a_2+\sqrt{a_3^2+d_4^2}\)), so we moved Box~A to \((0.5, 0.5, 0)\) along the same
+\(45^\circ\) direction. Box~B was placed at \((0.55,-0.25,0)\).
 
 % =========================================================================
 \section{Coordinate frames and D-H parameters}
@@ -178,19 +174,8 @@ wrist), so \(o_4 \equiv o_5\) is the \emph{wrist centre}.
 
 \begin{figure}[t]
 \centering
-\begin{subfigure}[b]{0.50\textwidth}\centering
-  \includegraphics[width=\linewidth]{dh-frames.jpg}
-  \caption{Hand-drawn frames on the GP7 at its zero pose.}
-\end{subfigure}\hfill
-\begin{subfigure}[b]{0.47\textwidth}\centering
-  \includegraphics[width=\linewidth]{frames_zero_pose.png}
-  \caption{Frames computed from Table~\ref{tab:dh} (\(q=0\)).}
-\end{subfigure}
-\caption{Coordinate frame assignment. In (b), triads whose origins coincide or nearly
-coincide are drawn offset and joined to their origin by a dotted line. At \(q=0\)
-the D-H rules give \(x_0 \parallel x_1\) (world \(+X\)) and \(x_6 \parallel x_5\)
-(world \(+Z\), since \(\alpha_6=0\)). Panel (b) is computed directly from the D-H matrices
-and is authoritative where the sketch differs.}
+\includegraphics[width=0.62\textwidth]{dh-frames.jpg}
+\caption{Coordinate frame assignment on the GP7 at its zero pose.}
 \label{fig:frames}
 \end{figure}
 
@@ -533,15 +518,17 @@ used above. Position and velocity are continuous. Acceleration is piecewise cons
 \(a=\SI{1.0}{rad/s^2}\). The profile is sampled every \(\Delta t = \SI{0.05}{s}\) and the
 exact end point is appended.
 
-\begin{figure}[h]
+\begin{figure}[!htb]
 \centering
-\includegraphics[width=0.74\textwidth]{lspb_transit.png}
+\includegraphics[width=0.56\textwidth]{lspb_transit.png}
 \caption{Synchronised LSPB for the transit segment (waypoint 3\,\(\to\)\,4, Box~B held).
 Joints 1 and 6 (both \(69.44^\circ\)) pace the motion. The others scale down so that all
 finish at \(t_f\). Dots: the 20\,Hz samples sent to the controller. \(q_4\) does not move.}
 \label{fig:lspb}
 \end{figure}
 
+\FloatBarrier
+\needspace{8\baselineskip}
 \paragraph{Code: trajectory planning} (\texttt{trajectory.py}).
 \lstinputlisting[firstline=4, lastline=54, firstnumber=4]{\src/trajectory.py}
 
@@ -645,8 +632,23 @@ obstacle avoidance.
 the original position is outside the arm's reach (Section~2).
 \end{itemize}
 
+\paragraph{Extension: language-guided pick-and-place.}
+Beyond the brief, we connected a vision-language model to the same motion pipeline:
+Moondream2~\cite{moondream}, a 2-billion-parameter open model (revision 2025-04-14). We
+chose it because it is small enough to run locally on a CPU and returns the image point of
+an object described in plain English, so targets no longer have to be typed in as
+coordinates. An overhead camera in a separate scene (\texttt{vla\_scene.sdf}) captures a
+frame, and the model is given the commands ``the small red cube'' \(\to\) ``the wide flat
+red square'', and likewise for blue and green. Each returned pixel is converted to a world
+position with a pinhole model calibrated on four known points (within 2\,cm), and the
+arm then runs the same IK, LSPB and action execution described above. Bare colour names
+(``the blue box'') were ambiguous, since the model sometimes chose the flat platform of the
+same colour; adding the shape fixed this. A recording of the three-object sequence is in the
+GitHub repository at \texttt{media/vla\_sequence\_demo.gif} (shown in the README under
+``Demo~2'').
+
 % =========================================================================
-\begin{thebibliography}{9}\small
+\begin{thebibliography}{9}\small\setlength{\itemsep}{0pt}\setlength{\parsep}{0pt}
 \bibitem{spong} M.~W. Spong, S.~Hutchinson, M.~Vidyasagar, \emph{Robot Modeling and Control}, 2nd ed., Wiley, 2020.
 \bibitem{gp7spec} Yaskawa, \emph{Motoman GP7 robot specification sheet} (provided on Moodle).
 \bibitem{rosi} ROS-Industrial, \texttt{motoman\_gp7\_support} package, \url{https://github.com/ros-industrial/motoman} (BSD licence).
@@ -654,6 +656,7 @@ the original position is outside the arm's reach (Section~2).
 \bibitem{dasilva} da Silva et al., ``Determination of the Inverse Kinematic of the Industrial Robot Yaskawa-Motoman-GP7,'' \emph{Advances in Robotics \& Mechanical Engineering}, 2022.
 \bibitem{ros2} ROS~2 Jazzy documentation, \url{https://docs.ros.org/en/jazzy/}; \texttt{ros2\_control}, \url{https://control.ros.org}.
 \bibitem{gazebo} Gazebo Harmonic documentation, \url{https://gazebosim.org/docs/harmonic}.
+\bibitem{moondream} vikhyatk, \emph{Moondream2} vision-language model, \url{https://huggingface.co/vikhyatk/moondream2}.
 \end{thebibliography}
 
 \end{document}

@@ -13,13 +13,13 @@
 \@writefile{toc}{\contentsline {paragraph}{Robot model.}{1}{section*.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Physics and control.}{1}{section*.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Environment.}{1}{section*.4}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Simulation environment.}}{1}{table.caption.5}\protected@file@percent }
-\newlabel{tab:world}{{1}{1}{Simulation environment}{table.caption.5}{}}
 \citation{dasilva}
 \citation{gp7spec}
 \citation{gp7spec}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Coordinate frame assignment. In (b), triads whose origins coincide or nearly coincide are drawn offset and joined to their origin by a dotted line. At \(q=0\) the D-H rules give \(x_0 \parallel x_1\) (world \(+X\)) and \(x_6 \parallel x_5\) (world \(+Z\), since \(\alpha _6=0\)). Panel (b) is computed directly from the D-H matrices and is authoritative where the sketch differs.}}{2}{figure.caption.7}\protected@file@percent }
-\newlabel{fig:frames}{{2}{2}{Coordinate frame assignment. In (b), triads whose origins coincide or nearly coincide are drawn offset and joined to their origin by a dotted line. At \(q=0\) the D-H rules give \(x_0 \parallel x_1\) (world \(+X\)) and \(x_6 \parallel x_5\) (world \(+Z\), since \(\alpha _6=0\)). Panel (b) is computed directly from the D-H matrices and is authoritative where the sketch differs}{figure.caption.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Simulation environment.}}{2}{table.caption.5}\protected@file@percent }
+\newlabel{tab:world}{{1}{2}{Simulation environment}{table.caption.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Coordinate frame assignment on the GP7 at its zero pose.}}{2}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:frames}{{2}{2}{Coordinate frame assignment on the GP7 at its zero pose}{figure.caption.7}{}}
 \@writefile{toc}{\contentsline {paragraph}{Why Box~A is not at \((1,1,0)\).}{2}{section*.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {3}Coordinate frames and D-H parameters}{2}{section.3}\protected@file@percent }
 \newlabel{eq:dh}{{1}{2}{Coordinate frames and D-H parameters}{equation.3.1}{}}
@@ -57,10 +57,10 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {6.3}LSPB velocity profile}{7}{subsection.6.3}\protected@file@percent }
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces TCP height and gripper orientation error with respect to \(\mathbf  R_\text  {down}\) over the whole mission, computed by FK on the commanded samples. Shaded: Box~B is in the gripper.}}{8}{figure.caption.22}\protected@file@percent }
 \newlabel{fig:orient}{{4}{8}{TCP height and gripper orientation error with respect to \(\mathbf R_\text {down}\) over the whole mission, computed by FK on the commanded samples. Shaded: Box~B is in the gripper}{figure.caption.22}{}}
-\@writefile{toc}{\contentsline {paragraph}{Code: trajectory planning}{8}{section*.24}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{../src/gp7_pick_place/gp7_pick_place/trajectory.py}{8}{lstlisting.-4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Synchronised LSPB for the transit segment (waypoint 3\,\(\to \)\,4, Box~B held). Joints 1 and 6 (both \(69.44^\circ \)) pace the motion. The others scale down so that all finish at \(t_f\). Dots: the 20\,Hz samples sent to the controller. \(q_4\) does not move.}}{9}{figure.caption.23}\protected@file@percent }
-\newlabel{fig:lspb}{{5}{9}{Synchronised LSPB for the transit segment (waypoint 3\,\(\to \)\,4, Box~B held). Joints 1 and 6 (both \(69.44^\circ \)) pace the motion. The others scale down so that all finish at \(t_f\). Dots: the 20\,Hz samples sent to the controller. \(q_4\) does not move}{figure.caption.23}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Synchronised LSPB for the transit segment (waypoint 3\,\(\to \)\,4, Box~B held). Joints 1 and 6 (both \(69.44^\circ \)) pace the motion. The others scale down so that all finish at \(t_f\). Dots: the 20\,Hz samples sent to the controller. \(q_4\) does not move.}}{8}{figure.caption.23}\protected@file@percent }
+\newlabel{fig:lspb}{{5}{8}{Synchronised LSPB for the transit segment (waypoint 3\,\(\to \)\,4, Box~B held). Joints 1 and 6 (both \(69.44^\circ \)) pace the motion. The others scale down so that all finish at \(t_f\). Dots: the 20\,Hz samples sent to the controller. \(q_4\) does not move}{figure.caption.23}{}}
+\@writefile{toc}{\contentsline {paragraph}{Code: trajectory planning}{9}{section*.24}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{../src/gp7_pick_place/gp7_pick_place/trajectory.py}{9}{lstlisting.-4}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {7}Velocity control}{9}{section.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Velocity limits.}{9}{section*.25}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{Execution.}{10}{section*.26}\protected@file@percent }
@@ -75,6 +75,8 @@
 \newlabel{fig:snaps}{{6}{12}{Frames from the screen-recorded Gazebo run}{figure.caption.29}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Trajectory segments of the mission. Path deviation: largest distance of the TCP from the straight line joining the segment's end points.}}{12}{table.caption.30}\protected@file@percent }
 \newlabel{tab:segments}{{7}{12}{Trajectory segments of the mission. Path deviation: largest distance of the TCP from the straight line joining the segment's end points}{table.caption.30}{}}
+\@writefile{toc}{\contentsline {paragraph}{Discussion and limitations.}{12}{section*.31}\protected@file@percent }
+\citation{moondream}
 \bibcite{spong}{1}
 \bibcite{gp7spec}{2}
 \bibcite{rosi}{3}
@@ -82,5 +84,6 @@
 \bibcite{dasilva}{5}
 \bibcite{ros2}{6}
 \bibcite{gazebo}{7}
-\@writefile{toc}{\contentsline {paragraph}{Discussion and limitations.}{13}{section*.31}\protected@file@percent }
+\bibcite{moondream}{8}
+\@writefile{toc}{\contentsline {paragraph}{Extension: language-guided pick-and-place.}{13}{section*.32}\protected@file@percent }
 \gdef \@abspage@last{13}
